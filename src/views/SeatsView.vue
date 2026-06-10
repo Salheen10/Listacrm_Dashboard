@@ -7,8 +7,11 @@ const store = useAppStore()
 
 const seatColumns = [
   { key: 'workspace', label: 'Workspace ID', strong: true },
+  { key: 'brokerage', label: 'Brokerage Name' },
+  { key: 'plan', label: 'Plan Name', type: 'badge' },
   { key: 'free', label: 'Included Seats' },
   { key: 'purchased', label: 'Total Seats' },
+  { key: 'extraPurchased', label: 'Purchased Seats' },
   { key: 'assigned', label: 'Assigned' },
   { key: 'active', label: 'Active' },
   { key: 'dormant', label: 'Dormant' },
@@ -17,7 +20,7 @@ const seatColumns = [
   { key: 'unused', label: 'Unused Cost' }
 ]
 
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 
 const dynamicSeatRows = computed(() => {
   return store.filteredWorkspaces.map(w => {
@@ -33,8 +36,11 @@ const dynamicSeatRows = computed(() => {
     
     return {
       workspace: w.id,
+      brokerage: w.brokerage,
+      plan: w.plan,
       free: free,
       purchased: purchased,
+      extraPurchased: Math.max(0, purchased - free),
       assigned: assigned,
       active: active,
       dormant: dormant,
@@ -43,6 +49,16 @@ const dynamicSeatRows = computed(() => {
       unused: `$${unusedCost}`
     }
   })
+})
+
+const searchQuery = ref('')
+const filteredSeats = computed(() => {
+  if (!searchQuery.value) return dynamicSeatRows.value
+  const q = searchQuery.value.toLowerCase()
+  return dynamicSeatRows.value.filter(s => 
+    s.workspace.toLowerCase().includes(q) || 
+    (s.brokerage && s.brokerage.toLowerCase().includes(q))
+  )
 })
 </script>
 
@@ -57,8 +73,14 @@ const dynamicSeatRows = computed(() => {
 
     <section class="content-grid">
       <div class="panel">
-        <div class="panel-header"><div><div class="panel-title">Seats by Workspace</div><div class="panel-subtitle">Purchased, assigned, accepted, active, dormant, released, and unused seat cost.</div></div></div>
-        <DataTable :columns="seatColumns" :rows="dynamicSeatRows" />
+        <div class="panel-header"><div><div class="panel-title">Seats by Workspace</div><div class="panel-subtitle">Purchased, assigned, accepted, active, dormant, released, and unused seat cost.</div></div>        </div>
+        <div style="padding: 12px 20px 0;">
+          <div class="search-box" style="width: 100%; margin-bottom: 12px;">
+            <span>⌕</span>
+            <input type="text" v-model="searchQuery" placeholder="Search seats by Workspace ID or Brokerage Name..." />
+          </div>
+        </div>
+        <DataTable :columns="seatColumns" :rows="filteredSeats" />
       </div>
       <div class="panel">
         <div class="panel-header"><div><div class="panel-title">Seat Change Timeline</div><div class="panel-subtitle">Audit-ready member and seat lifecycle events.</div></div></div>

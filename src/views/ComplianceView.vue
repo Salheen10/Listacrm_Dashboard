@@ -1,4 +1,5 @@
 <script setup>
+import { ref, computed } from 'vue'
 import { useAppStore } from '../store'
 import KpiCard from '../components/KpiCard.vue'
 import DataTable from '../components/DataTable.vue'
@@ -11,9 +12,17 @@ const columns = [
   { key: 'mls', label: 'MLS', type: 'badge' },
   { key: 'broker', label: 'Broker', type: 'badge' },
   { key: 'sync', label: 'Sync', type: 'badge' },
-  { key: 'last', label: 'Last Check' },
-  { key: 'risk', label: 'Risk', type: 'badge' }
+  { key: 'last', label: 'Last Sync' }
 ]
+
+const searchQuery = ref('')
+const filteredCompliance = computed(() => {
+  if (!searchQuery.value) return store.compliance
+  const q = searchQuery.value.toLowerCase()
+  return store.compliance.filter(c => 
+    c.workspace.toLowerCase().includes(q)
+  )
+})
 </script>
 
 <template>
@@ -26,8 +35,19 @@ const columns = [
     </section>
     <section class="content-grid">
       <div class="panel">
-        <div class="panel-header"><div><div class="panel-title">Compliance Queue</div><div class="panel-subtitle">IDX/MLS state, broker authorization, sync, and risk exposure.</div></div></div>
-        <DataTable :columns="columns" :rows="store.compliance" />
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Compliance Queue</div>
+            <div class="panel-subtitle">IDX/MLS state, broker authorization, sync, and risk exposure.</div>
+          </div>
+        </div>
+        <div style="padding: 12px 20px 0;">
+          <div class="search-box" style="width: 100%; margin-bottom: 12px;">
+            <span>⌕</span>
+            <input type="text" v-model="searchQuery" placeholder="Search compliance by Workspace ID..." />
+          </div>
+        </div>
+        <DataTable :columns="columns" :rows="filteredCompliance" />
       </div>
       <div class="panel">
         <div class="panel-header"><div><div class="panel-title">Compliance Actions</div><div class="panel-subtitle">Recommended automatic and manual controls.</div></div></div>

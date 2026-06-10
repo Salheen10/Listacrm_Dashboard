@@ -5,10 +5,10 @@ import KpiCard from '../components/KpiCard.vue'
 <template>
   <div class="usage">
     <section class="kpi-grid">
-      <KpiCard title="DAU" value="3,842" trend="+8.3%" icon="▤" />
-      <KpiCard title="WAU" value="9,705" trend="+10.9%" icon="▤" />
-      <KpiCard title="MAU" value="18,440" trend="+12.6%" icon="▤" />
-      <KpiCard title="DAU/MAU Stickiness" value="20.8%" trend="+1.9%" icon="%" />
+      <KpiCard title="Daily Active Users" value="3,842" trend="+8.3%" icon="▤" />
+      <KpiCard title="Weekly Active Users" value="9,705" trend="+10.9%" icon="▤" />
+      <KpiCard title="Monthly Active Users" value="18,440" trend="+12.6%" icon="▤" />
+      <KpiCard title="Daily/Monthly User Stickiness" value="20.8%" trend="+1.9%" icon="%" />
     </section>
     <section class="content-grid">
       <div class="panel">

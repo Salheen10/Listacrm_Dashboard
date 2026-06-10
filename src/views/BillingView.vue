@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '../store'
 import DataTable from '../components/DataTable.vue'
 import KpiCard from '../components/KpiCard.vue'
@@ -16,19 +16,33 @@ const maxMix = computed(() => {
 const invoiceColumns = [
   { key: 'id', label: 'Invoice', strong: true },
   { key: 'workspace', label: 'Workspace ID' },
+  { key: 'brokerage', label: 'Brokerage Name' },
   { key: 'plan', label: 'Plan', type: 'badge' },
   { key: 'amount', label: 'Amount', strong: true },
   { key: 'status', label: 'Status', type: 'badge' },
   { key: 'due', label: 'Due' },
   { key: 'age', label: 'Age' }
 ]
+
+const searchQuery = ref('')
+const filteredInvoices = computed(() => {
+  if (!searchQuery.value) return store.invoices
+  const q = searchQuery.value.toLowerCase()
+  return store.invoices.filter(i => 
+    i.id.toLowerCase().includes(q) || 
+    i.workspace.toLowerCase().includes(q) || 
+    (i.brokerage && i.brokerage.toLowerCase().includes(q))
+  )
+})
 </script>
 
 <template>
   <div class="billing">
     <section class="kpi-grid">
-      <KpiCard title="MRR" :value="money(store.filteredKpis.mrr)" trend="+9.6%" icon="$" />
-      <KpiCard title="ARR" :value="money(store.filteredKpis.arr)" trend="+11.3%" icon="↥" />
+      <KpiCard title="Monthly Recurring Revenue" :value="money(store.filteredKpis.mrr)" trend="+9.6%" icon="$" />
+      <KpiCard title="Annual Recurring Revenue" :value="money(store.filteredKpis.arr)" trend="+11.3%" icon="↥" />
+      <KpiCard title="Paid Invoices" :value="store.filteredKpis.paidInvoices.toLocaleString()" trend="+7.8%" icon="◉" />
+      <KpiCard title="Total Paid Amount" :value="money(store.filteredKpis.paidAmount)" trend="+8.2%" icon="$" />
       <KpiCard title="Revenue at Risk" :value="money(store.filteredKpis.revenueAtRisk)" trend="+4.2%" icon="!" trendType="down" />
       <KpiCard title="Overdue Invoices" :value="store.filteredKpis.overdueInvoices.toString()" trend="-2.9%" icon="◉" trendType="down" />
     </section>
@@ -40,9 +54,14 @@ const invoiceColumns = [
             <div class="panel-title">Invoices Control Room</div>
             <div class="panel-subtitle">Paid, open, failed, overdue, disputed, refunded, and dunning-state invoices.</div>
           </div>
-          <button class="warning-btn">Run Dunning</button>
         </div>
-        <DataTable :columns="invoiceColumns" :rows="store.invoices" />
+        <div style="padding: 12px 20px 0;">
+          <div class="search-box" style="width: 100%; margin-bottom: 12px;">
+            <span>⌕</span>
+            <input type="text" v-model="searchQuery" placeholder="Search invoices by ID, Workspace, or Brokerage..." />
+          </div>
+        </div>
+        <DataTable :columns="invoiceColumns" :rows="filteredInvoices" />
       </div>
       <div class="panel">
         <div class="panel-header">

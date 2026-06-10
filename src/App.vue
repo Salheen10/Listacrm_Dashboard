@@ -16,7 +16,7 @@ const menuItems = [
   { id: 'addons', label: 'Add-ons', icon: '✦' },
   { id: 'seats', label: 'Seats', icon: '☷' },
   { id: 'usage', label: 'Product Usage', icon: '▤' },
-  { id: 'retention', label: 'Retention', icon: '♡' },
+  { id: 'enterprise', label: 'Enterprise Tracking', icon: '★' },
   { id: 'compliance', label: 'IDX / MLS Compliance', icon: '✓' },
   { id: 'ops', label: 'Ops Alerts', icon: '⚙' },
   { id: 'audit', label: 'Audit Logs', icon: '☰' }
@@ -31,7 +31,7 @@ const pageMetaInfo = {
   addons: ["Add-ons Intelligence", "Track IDX, Marketing Automation, Social Suite attach rate, activation, churn, and revenue contribution."],
   seats: ["Seats Indicators & Changes", "Review purchased, assigned, active, dormant, released, CRM-only, and MLS-enabled seats."],
   usage: ["Product Usage Analytics", "Measure module adoption, first value, DAU/WAU/MAU, stickiness, and feature-to-retention signals."],
-  retention: ["Retention & Churn Risk", "Prioritize at-risk customers, revenue exposure, customer save queues, and expansion opportunities."],
+  enterprise: ["Enterprise Tracking", "Track enterprise contact requests, demo requests, upgrade inquiries, and high-value account management."],
   compliance: ["IDX / MLS Compliance Center", "Track IDX status, MLS verification, broker authorization, sync failures, violations, and audit evidence."],
   ops: ["Operations Alerts", "Manage stuck onboarding, failed jobs, support queues, billing exceptions, and internal intervention tasks."],
   audit: ["Audit Logs", "Review sensitive lifecycle, billing, member, seat, IDX, export, and permission events."]
@@ -53,14 +53,14 @@ const navigate = (name) => {
 
 const filteredMenu = computed(() => {
   if (store.isMvpMode) {
-    return menuItems.filter(i => !['retention', 'ops', 'audit'].includes(i.id))
+    return menuItems.filter(i => !['ops', 'audit'].includes(i.id))
   }
   return menuItems
 })
 
 const toggleMvp = () => {
   store.toggleMvpMode()
-  if (store.isMvpMode && ['retention', 'ops', 'audit'].includes(route.name)) {
+  if (store.isMvpMode && ['ops', 'audit'].includes(route.name)) {
     router.push({ name: 'overview' })
   }
 }
@@ -104,8 +104,10 @@ const toggleMvp = () => {
         <button class="nav-item" :class="{ active: route.name === 'usage' }" @click="navigate('usage')">
           <span class="nav-icon">▤</span><span>Product Usage</span>
         </button>
-        <button v-if="!store.isMvpMode" class="nav-item" :class="{ active: route.name === 'retention' }" @click="navigate('retention')">
-          <span class="nav-icon">♡</span><span>Retention</span>
+
+        <div class="nav-section">SALES</div>
+        <button class="nav-item" :class="{ active: route.name === 'enterprise' }" @click="navigate('enterprise')">
+          <span class="nav-icon">★</span><span>Enterprise Tracking</span>
         </button>
 
         <template v-if="!store.isMvpMode">
@@ -134,10 +136,7 @@ const toggleMvp = () => {
     <main class="main">
       <header class="topbar">
         <button class="collapse-btn">≪</button>
-        <div class="search-box">
-          <span>⌕</span>
-          <input type="text" placeholder="Search workspaces, invoices, plans, users..." />
-        </div>
+
         <div class="topbar-actions">
           <button class="ghost-btn" @click="toggleMvp">
             {{ store.isMvpMode ? 'Switch to Advanced' : 'Switch to MVP' }}
@@ -186,16 +185,7 @@ const toggleMvp = () => {
               <option value="Enterprise">Enterprise</option>
             </select>
           </label>
-          <label>
-            Risk
-            <select v-model="store.filters.risk">
-              <option value="all">All Risk Levels</option>
-              <option value="Healthy">Healthy</option>
-              <option value="Needs Attention">Needs Attention</option>
-              <option value="At Risk">At Risk</option>
-              <option value="Critical">Critical</option>
-            </select>
-          </label>
+
         </div>
       </section>
 

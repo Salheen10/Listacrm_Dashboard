@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useAppStore } from '../store'
 import KpiCard from '../components/KpiCard.vue'
 
@@ -7,6 +7,24 @@ const store = useAppStore()
 
 const funnelSteps = computed(() => store.rawData.onboardingSteps)
 const maxFunnel = computed(() => Math.max(...funnelSteps.value.map(s => s.reached)))
+
+const searchQuery = ref('')
+const filterStep = ref('')
+
+const filteredQueue = computed(() => {
+  let result = store.rescueQueue
+  if (searchQuery.value) {
+    const q = searchQuery.value.toLowerCase()
+    result = result.filter(r => 
+      r.name.toLowerCase().includes(q) || 
+      r.current.toLowerCase().includes(q)
+    )
+  }
+  if (filterStep.value) {
+    result = result.filter(r => r.current === filterStep.value)
+  }
+  return result
+})
 </script>
 
 <template>
@@ -25,7 +43,6 @@ const maxFunnel = computed(() => Math.max(...funnelSteps.value.map(s => s.reache
             <div class="panel-title">Onboarding Funnel</div>
             <div class="panel-subtitle">Shows how many users completed onboarding and where incomplete users usually stop.</div>
           </div>
-          <button class="warning-btn">Start Rescue Campaign</button>
         </div>
         <div class="panel-body">
           <div class="funnel">
@@ -81,9 +98,21 @@ const maxFunnel = computed(() => Math.max(...funnelSteps.value.map(s => s.reache
             <div class="panel-subtitle">Internal action queue by current step, stuck duration, potential MRR, and recommended action.</div>
           </div>
         </div>
-        <div class="panel-body">
+        <div style="padding: 12px 20px 0; display: flex; gap: 12px;">
+          <div class="search-box" style="flex: 1; margin-bottom: 12px;">
+            <span>⌕</span>
+            <input type="text" v-model="searchQuery" placeholder="Search queue by workspace name or step..." />
+          </div>
+          <select v-model="filterStep" style="margin-bottom: 12px; padding: 0 12px; border: 1px solid #e5e7eb; border-radius: 6px; outline: none; background: #f9fafb; font-family: inherit;">
+            <option value="">All Steps</option>
+            <option value="Payment Failed">Payment Failed</option>
+            <option value="Broker Authorization">Broker Authorization</option>
+            <option value="First Record Pending">First Record Pending</option>
+          </select>
+        </div>
+        <div class="panel-body" style="padding-top: 0;">
           <div class="cards-list">
-            <div class="queue-card" v-for="q in store.rescueQueue" :key="q.name">
+            <div class="queue-card" v-for="q in filteredQueue" :key="q.name">
               <div class="queue-top">
                 <div>
                   <div class="queue-title">{{ q.name }}</div>
@@ -93,10 +122,6 @@ const maxFunnel = computed(() => Math.max(...funnelSteps.value.map(s => s.reache
               </div>
               <div class="queue-meta">Potential MRR: <strong>{{ q.mrr }}</strong></div>
               <div class="queue-meta">Recommended action: {{ q.action }}</div>
-              <div class="queue-action">
-                <button class="small-btn green">Assign</button>
-                <button class="small-btn">Send Reminder</button>
-              </div>
             </div>
           </div>
         </div>
