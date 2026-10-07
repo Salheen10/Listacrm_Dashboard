@@ -4,7 +4,7 @@ const calculateMrr = (plan, users, idxType, microsites) => {
   let mrr = 0;
   let baseUsers = 1;
 
-  if (plan === 'Starter') {
+  if (plan === 'Solo') {
     return 79; // Strictly Solo
   } else if (plan === 'Growth') {
     mrr += 179;
@@ -32,14 +32,14 @@ export const useAppStore = defineStore('app', {
   state: () => ({
     rawData: {
       workspaces: [
-        // --- STARTER PLAN (Strictly 1 user) ---
-        { id: "WS-10001", brokerage: "Sunset Realty", plan: "Starter", status: "Active", risk: "Healthy", health: 95, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-01" },
-        { id: "WS-10002", brokerage: "Gulf Homes", plan: "Starter", status: "Active", risk: "Healthy", health: 82, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Yesterday", date: "2026-04-20" },
-        { id: "WS-10003", brokerage: "Prime Estates", plan: "Starter", status: "Payment Failed", risk: "Critical", health: 12, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "Payment", owner: "Support", last: "5 days ago", date: "2026-05-03" },
-        { id: "WS-10004", brokerage: "City View Realty", plan: "Starter", status: "Active", risk: "Needs Attention", health: 64, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "No First Value", owner: "System", last: "Today", date: "2026-05-04" },
-        { id: "WS-10005", brokerage: "Al Maskan Properties", plan: "Starter", status: "Active", risk: "Healthy", health: 88, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-02-15" },
-        { id: "WS-10006", brokerage: "Nile Property Group", plan: "Starter", status: "Active", risk: "At Risk", health: 45, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "Support", last: "8 days ago", date: "2026-01-10" },
-        { id: "WS-10007", brokerage: "Royal Living", plan: "Starter", status: "Active", risk: "Healthy", health: 91, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-02" },
+        // --- SOLO PLAN (Strictly 1 user) ---
+        { id: "WS-10001", brokerage: "Sunset Realty", plan: "Solo", status: "Active", risk: "Healthy", health: 95, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-01" },
+        { id: "WS-10002", brokerage: "Gulf Homes", plan: "Solo", status: "Active", risk: "Healthy", health: 82, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Yesterday", date: "2026-04-20" },
+        { id: "WS-10003", brokerage: "Prime Estates", plan: "Solo", status: "Payment Failed", risk: "Critical", health: 12, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "Payment", owner: "Support", last: "5 days ago", date: "2026-05-03" },
+        { id: "WS-10004", brokerage: "City View Realty", plan: "Solo", status: "Active", risk: "Needs Attention", health: 64, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "No First Value", owner: "System", last: "Today", date: "2026-05-04" },
+        { id: "WS-10005", brokerage: "Al Maskan Properties", plan: "Solo", status: "Active", risk: "Healthy", health: 88, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-02-15" },
+        { id: "WS-10006", brokerage: "Nile Property Group", plan: "Solo", status: "Active", risk: "At Risk", health: 45, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "Support", last: "8 days ago", date: "2026-01-10" },
+        { id: "WS-10007", brokerage: "Royal Living", plan: "Solo", status: "Active", risk: "Healthy", health: 91, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-02" },
 
         // --- GROWTH PLAN (3 free seats) ---
         { id: "WS-20001", brokerage: "Green Valley Homes", plan: "Growth", status: "Active", risk: "Healthy", health: 92, users: 3, idx: "IDX Core", microsites: 2, onboarding: "First Value", owner: "Manager", last: "Today", date: "2026-05-02" },
@@ -65,9 +65,9 @@ export const useAppStore = defineStore('app', {
         { id: "WS-40003", brokerage: "Dar Al Arkan", plan: "Enterprise", status: "Active", risk: "Healthy", health: 99, users: 350, idx: "IDX Pro", microsites: 100, onboarding: "First Value", owner: "Legal", last: "Today", date: "2024-01-15" },
 
         // --- MIXED ADDITIONS TO REACH 50+ ---
-        { id: "WS-10008", brokerage: "Lighthouse Realty", plan: "Starter", status: "Active", risk: "Healthy", health: 87, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-04" },
-        { id: "WS-10009", brokerage: "Cedar Homes", plan: "Starter", status: "Active", risk: "Healthy", health: 93, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Yesterday", date: "2026-04-28" },
-        { id: "WS-10010", brokerage: "Marina Properties", plan: "Starter", status: "Active", risk: "Needs Attention", health: 59, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "No First Value", owner: "Support", last: "Today", date: "2026-05-04" },
+        { id: "WS-10008", brokerage: "Lighthouse Realty", plan: "Solo", status: "Active", risk: "Healthy", health: 87, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-04" },
+        { id: "WS-10009", brokerage: "Cedar Homes", plan: "Solo", status: "Active", risk: "Healthy", health: 93, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Yesterday", date: "2026-04-28" },
+        { id: "WS-10010", brokerage: "Marina Properties", plan: "Solo", status: "Active", risk: "Needs Attention", health: 59, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "No First Value", owner: "Support", last: "Today", date: "2026-05-04" },
         { id: "WS-20009", brokerage: "Capital Brokers", plan: "Growth", status: "Active", risk: "Healthy", health: 84, users: 4, idx: "IDX Core", microsites: 1, onboarding: "First Value", owner: "Manager", last: "Today", date: "2026-05-04" },
         { id: "WS-20010", brokerage: "Pearl Real Estate", plan: "Growth", status: "Active", risk: "Healthy", health: 90, users: 6, idx: "IDX Pro", microsites: 4, onboarding: "First Value", owner: "Manager", last: "Yesterday", date: "2026-05-03" },
         { id: "WS-20011", brokerage: "Atlas Realty", plan: "Growth", status: "Active", risk: "At Risk", health: 47, users: 3, idx: "IDX Core", microsites: 0, onboarding: "First Value", owner: "Support", last: "Today", date: "2026-05-04" },
@@ -75,17 +75,17 @@ export const useAppStore = defineStore('app', {
         { id: "WS-30007", brokerage: "Crown Realty Group", plan: "Brokerage", status: "Active", risk: "Healthy", health: 92, users: 20, idx: "IDX Pro", microsites: 10, onboarding: "First Value", owner: "Director", last: "Today", date: "2026-05-04" },
         { id: "WS-30008", brokerage: "Diamond Homes", plan: "Brokerage", status: "Payment Failed", risk: "Critical", health: 18, users: 15, idx: "IDX Core", microsites: 0, onboarding: "First Value", owner: "Support", last: "Today", date: "2026-05-04" },
         { id: "WS-30009", brokerage: "Vista Properties", plan: "Brokerage", status: "Active", risk: "Healthy", health: 86, users: 40, idx: "IDX Pro", microsites: 25, onboarding: "First Value", owner: "Director", last: "Today", date: "2026-05-04" },
-        { id: "WS-10011", brokerage: "Sahara Estates", plan: "Starter", status: "Active", risk: "Healthy", health: 91, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-04" },
-        { id: "WS-10012", brokerage: "Coral Bay Realty", plan: "Starter", status: "Active", risk: "Healthy", health: 85, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-04" },
+        { id: "WS-10011", brokerage: "Sahara Estates", plan: "Solo", status: "Active", risk: "Healthy", health: 91, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-04" },
+        { id: "WS-10012", brokerage: "Coral Bay Realty", plan: "Solo", status: "Active", risk: "Healthy", health: 85, users: 1, idx: "Not Purchased", microsites: 0, onboarding: "First Value", owner: "System", last: "Today", date: "2026-05-04" },
         { id: "WS-20013", brokerage: "Amber Properties", plan: "Growth", status: "Active", risk: "Healthy", health: 95, users: 5, idx: "IDX Pro", microsites: 2, onboarding: "First Value", owner: "Manager", last: "Today", date: "2026-05-04" },
         { id: "WS-20014", brokerage: "Silver Key Homes", plan: "Growth", status: "Active", risk: "Healthy", health: 82, users: 3, idx: "IDX Core", microsites: 1, onboarding: "First Value", owner: "Manager", last: "Today", date: "2026-05-04" }
       ].map(w => {
-        const freeSeats = w.plan === 'Starter' ? 1 : (w.plan === 'Growth' ? 3 : (w.plan === 'Brokerage' ? 5 : 20));
+        const freeSeats = w.plan === 'Solo' ? 1 : (w.plan === 'Growth' ? 3 : (w.plan === 'Brokerage' ? 5 : 20));
         return {
           ...w,
           freeSeats,
           mrr: calculateMrr(w.plan, w.users, w.idx, w.microsites),
-          seats: `${w.users}/${w.plan === 'Starter' ? 1 : (w.plan === 'Enterprise' ? Math.max(100, w.users + 20) : Math.max(freeSeats, w.users))}`
+          seats: `${w.users}/${w.plan === 'Solo' ? 1 : (w.plan === 'Enterprise' ? Math.max(100, w.users + 20) : Math.max(freeSeats, w.users))}`
         };
       }),
       onboardingSteps: [
@@ -178,12 +178,12 @@ export const useAppStore = defineStore('app', {
         { name: "Enterprise", value: mix['Enterprise'] || 0, color: "purple" },
         { name: "Brokerage", value: mix['Brokerage'] || 0, color: "green" },
         { name: "Growth", value: mix['Growth'] || 0, color: "orange" },
-        { name: "Starter", value: mix['Starter'] || 0, color: "blue" }
+        { name: "Solo", value: mix['Solo'] || 0, color: "blue" }
       ].filter(r => r.value > 0).sort((a,b) => b.value - a.value);
     },
     planPerformance(state) {
-      const plans = ['Starter', 'Growth', 'Brokerage', 'Enterprise'];
-      const mockChanges = { Starter: { upgrades: 12, downgrades: 0 }, Growth: { upgrades: 18, downgrades: 5 }, Brokerage: { upgrades: 8, downgrades: 3 }, Enterprise: { upgrades: 2, downgrades: 1 } };
+      const plans = ['Solo', 'Growth', 'Brokerage', 'Enterprise'];
+      const mockChanges = { Solo: { upgrades: 12, downgrades: 0 }, Growth: { upgrades: 18, downgrades: 5 }, Brokerage: { upgrades: 8, downgrades: 3 }, Enterprise: { upgrades: 2, downgrades: 1 } };
       return plans.map(p => {
         const ws = state.rawData.workspaces.filter(w => {
           return w.plan === p;
@@ -205,7 +205,7 @@ export const useAppStore = defineStore('app', {
       }).filter(Boolean);
     },
     planMatrix(state) {
-      const plans = ['Starter', 'Growth', 'Brokerage', 'Enterprise'];
+      const plans = ['Solo', 'Growth', 'Brokerage', 'Enterprise'];
       return plans.map(p => {
         const ws = state.rawData.workspaces.filter(w => {
           return w.plan === p;

@@ -32,7 +32,7 @@ const dynamicSeatRows = computed(() => {
     let released = Math.floor(purchased * 0.05);
     let util = Math.round((active / purchased) * 100);
     let unusedCost = (purchased - active) * 35;
-    if (w.plan === 'Starter') unusedCost = 0;
+    if (w.plan === 'Solo') unusedCost = 0;
     
     return {
       workspace: w.id,

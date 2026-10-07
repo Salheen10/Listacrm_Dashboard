@@ -63,7 +63,7 @@ const top10Data = computed(() => top10Tab.value === 'users' ? store.top10ByUsers
           </div>
           <select v-model="filterPlan" style="margin-bottom: 12px; padding: 0 12px; border: 1px solid #e5e7eb; border-radius: 6px; outline: none; background: #f9fafb; font-family: inherit;">
             <option value="">All Plans</option>
-            <option value="Starter">Starter</option>
+            <option value="Solo">Solo</option>
             <option value="Growth">Growth</option>
             <option value="Brokerage">Brokerage</option>
             <option value="Enterprise">Enterprise</option>
