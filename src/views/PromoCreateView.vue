@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePromoStore, scopeItems, discountOf, discountLabel, TARGET_LABEL, MODE_LABEL } from '../store/promos'
+import { usePromoStore, scopeItems, itemPrice, discountOf, discountLabel, TARGET_LABEL, MODE_LABEL, APPLIES_TO } from '../store/promos'
 import { usd, fmtDateTime } from '../utils/format'
 import { NOW } from '../data/catalog'
 
@@ -120,9 +120,13 @@ const preview = computed(() => {
   const list = items.value
   const item = list.find(i => i.id === previewItem.value) || list.find(i => form.scope.includes(i.id)) || list[0]
   const eligible = !form.scope.length || form.scope.includes(item.id)
-  const discount = eligible ? discountOf(form, item.price) : 0
-  const capped = form.mode === 'FIXED_AMOUNT' && Number(form.value) * 100 > item.price
-  return { item, eligible, discount, final: item.price - discount, capped }
+  // A renewal promo discounts the whole upcoming invoice, so the example adds an add-on line to the plan.
+  const lines = [{ label: `${item.id} (monthly)`, amount: item.price }]
+  if (form.target === 'RENEWAL') lines.push({ label: 'IDX Core add-on (example)', amount: itemPrice('IDX Core') })
+  const subtotal = lines.reduce((x, l) => x + l.amount, 0)
+  const discount = eligible ? discountOf(form, subtotal) : 0
+  const capped = form.mode === 'FIXED_AMOUNT' && Number(form.value) * 100 > subtotal
+  return { item, eligible, lines, subtotal, discount, final: subtotal - discount, capped }
 })
 const badge = computed(() => discountLabel(form))
 
@@ -237,7 +241,7 @@ const checks = computed(() => {
                   <button v-for="[id, label] in TARGETS" :key="id" class="bo-seg" :class="{ on: form.target === id }" :aria-pressed="form.target === id" @click="setTarget(id)">{{ label }}</button>
                 </div>
                 <div class="bo-hint" style="margin-top: 4px">
-                  {{ form.target === 'PLAN' ? 'Discounts the base plan line only.' : form.target === 'ADD_ON' ? 'Discounts the selected add-on line only.' : 'Applied at the next renewal charge and revalidated at that time.' }}
+                  {{ form.target === 'PLAN' ? 'Discounts the base plan line only.' : form.target === 'ADD_ON' ? 'Discounts the selected add-on line only.' : 'Discounts the total renewal invoice: plan, add-ons and extra seats. Revalidated at the renewal charge.' }}
                 </div>
               </div>
               <div>
@@ -284,12 +288,14 @@ const checks = computed(() => {
             </div>
             <div class="bo-fields">
               <div class="bo-card bo-pad">
-                <strong>Checkout preview</strong>
-                <div class="bo-kv" style="margin-top: 8px"><div>{{ preview.item.id }} (monthly)</div><div class="bo-num">{{ usd(preview.item.price) }}</div></div>
+                <strong>{{ form.target === 'RENEWAL' ? 'Renewal invoice preview' : 'Checkout preview' }}</strong>
+                <div v-for="(l, i) in preview.lines" :key="l.label" class="bo-kv" :style="i === 0 ? 'margin-top: 8px' : ''"><div>{{ l.label }}</div><div class="bo-num">{{ usd(l.amount) }}</div></div>
+                <div v-if="preview.lines.length > 1" class="bo-kv"><div>Renewal subtotal</div><div class="bo-num">{{ usd(preview.subtotal) }}</div></div>
                 <div class="bo-kv"><div>Promo code ({{ form.code || '—' }})</div><div class="bo-num" style="color: var(--bo-good)">−{{ usd(preview.discount) }}</div></div>
                 <div class="bo-kv"><div style="color: var(--bo-text); font-weight: 700">Total (USD)</div><div class="bo-num" style="font-weight: 700">{{ usd(preview.final) }}</div></div>
                 <div v-if="!preview.eligible" class="bo-err">{{ preview.item.id }} is outside the eligible scope, so the code would be rejected for this purchase.</div>
-                <div v-if="preview.capped" class="bo-hint" style="margin-top: 6px">The fixed amount is larger than this price, so the discount is capped at the subtotal.</div>
+                <div v-if="preview.capped" class="bo-hint" style="margin-top: 6px">The fixed amount is larger than this subtotal, so the discount is capped at the subtotal.</div>
+                <div v-if="form.target === 'RENEWAL'" class="bo-hint" style="margin-top: 6px">Renewal promos discount everything on the renewal invoice. The add-on line is only an example; each workspace's own add-ons and seats are used.</div>
               </div>
               <div class="bo-card bo-pad" style="background: var(--bo-primary-soft); border-color: #c9dbfb">
                 <strong>Rules that always apply</strong>
@@ -312,9 +318,15 @@ const checks = computed(() => {
               <div>
                 <h2 class="bo-h2">Eligible {{ scopeNoun }}s</h2>
                 <div class="bo-hint">
-                  {{ form.target === 'RENEWAL' ? 'Renewals of these plans can use the code.' : `This ${TARGET_LABEL[form.target].toLowerCase()} promo can be redeemed on the selected ${scopeNoun}s only.` }}
+                  {{ form.target === 'RENEWAL' ? 'Workspaces renewing on these plans can use the code.' : `This ${TARGET_LABEL[form.target].toLowerCase()} promo can be redeemed on the selected ${scopeNoun}s only.` }}
                   Change the target type in step 1.
                 </div>
+              </div>
+            </div>
+            <div v-if="form.target === 'RENEWAL'" class="bo-banner note" style="font-size: 13px">
+              <div>
+                <strong>You pick plans, but the discount covers the whole renewal invoice.</strong>
+                The plan decides which workspaces qualify. The discount is then calculated on their total upcoming renewal: base plan plus every active add-on and extra seat. You do not select add-ons separately.
               </div>
             </div>
             <div class="bo-rowflex" role="group" :aria-label="`Eligible ${scopeNoun}s`">
@@ -326,9 +338,12 @@ const checks = computed(() => {
               <div style="flex: 1 1 320px">
                 <strong>The {{ usd(Math.round(form.value * 100)) }} fixed discount is larger than {{ cappedItems.length === 1 ? 'this price' : 'these prices' }}.</strong>
                 <ul style="margin: 6px 0 0; padding-left: 18px">
-                  <li v-for="i in cappedItems" :key="i.id">{{ i.id }} ({{ usd(i.price) }}): discount is capped at {{ usd(i.price) }} and the customer pays $0.00.</li>
+                  <li v-for="i in cappedItems" :key="i.id">
+                    <template v-if="form.target === 'RENEWAL'">{{ i.id }} ({{ usd(i.price) }}): a workspace with no add-ons has a {{ usd(i.price) }} renewal, so its discount is capped there and it pays $0.00.</template>
+                    <template v-else>{{ i.id }} ({{ usd(i.price) }}): discount is capped at {{ usd(i.price) }} and the customer pays $0.00.</template>
+                  </li>
                 </ul>
-                <div style="margin-top: 6px">You can still create the code. The cap is applied on the actual invoice line, so larger quantities or billing periods may use the full amount.</div>
+                <div style="margin-top: 6px">You can still create the code. The cap is applied on the actual invoice line, so larger quantities, billing periods or renewals with add-ons may use the full amount.</div>
               </div>
               <div class="bo-rowflex">
                 <button class="bo-btn sm" @click="goTo(1)">Change amount</button>
@@ -414,6 +429,7 @@ const checks = computed(() => {
               <button class="bo-link" :disabled="syncing" @click="goTo(1)">Edit</button>
             </div>
             <div class="bo-kv"><div>Target type</div><div>{{ TARGET_LABEL[form.target] }}</div></div>
+            <div class="bo-kv"><div>Applies to</div><div>{{ APPLIES_TO[form.target] }}</div></div>
             <div class="bo-kv"><div>Discount</div><div>{{ MODE_LABEL[form.mode] }} · {{ badge }}</div></div>
             <div class="bo-kv"><div>Currency</div><div>{{ form.currency }}</div></div>
             <div class="bo-kv">
@@ -470,6 +486,7 @@ const checks = computed(() => {
             <div class="bo-between" style="align-items: center"><strong>Discount details</strong><button v-if="step !== 1" class="bo-link" :disabled="syncing" @click="goTo(1)">Edit</button></div>
             <div class="bo-kv"><div>Internal name</div><div>{{ form.name || '—' }}</div></div>
             <div class="bo-kv"><div>Target type</div><div>{{ TARGET_LABEL[form.target] }}</div></div>
+            <div class="bo-kv"><div>Applies to</div><div>{{ APPLIES_TO[form.target] }}</div></div>
             <div class="bo-kv"><div>Discount mode</div><div>{{ MODE_LABEL[form.mode] }}</div></div>
             <div class="bo-kv"><div>Discount value</div><div>{{ badge }}</div></div>
           </div>
@@ -489,7 +506,7 @@ const checks = computed(() => {
 
           <div>
             <strong>Example billing preview</strong>
-            <div class="bo-kv"><div>{{ preview.item.id }} (monthly)</div><div class="bo-num">{{ usd(preview.item.price) }}</div></div>
+            <div v-for="l in preview.lines" :key="l.label" class="bo-kv"><div>{{ l.label }}</div><div class="bo-num">{{ usd(l.amount) }}</div></div>
             <div class="bo-kv"><div>Discount</div><div class="bo-num" style="color: var(--bo-good)">−{{ usd(preview.discount) }}</div></div>
             <div class="bo-total"><span>Total (USD)</span><span>{{ usd(preview.final) }}</span></div>
           </div>

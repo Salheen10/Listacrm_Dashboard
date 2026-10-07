@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { usePromoStore, statusOf, discountOf, discountLabel, totalsOf, TARGET_LABEL, MODE_LABEL } from '../store/promos'
+import { usePromoStore, statusOf, discountOf, discountLabel, totalsOf, TARGET_LABEL, MODE_LABEL, APPLIES_TO } from '../store/promos'
 import { usd, fmtDateTime } from '../utils/format'
 import { NOW } from '../data/catalog'
 
@@ -165,10 +165,11 @@ const deactivate = () => {
         <section class="bo-card bo-pad">
           <h2 class="bo-h2" style="margin-bottom: 8px">Configuration</h2>
           <div class="bo-kv"><div>Target type</div><div>{{ TARGET_LABEL[promo.target] }}</div></div>
+          <div class="bo-kv"><div>Applies to</div><div>{{ APPLIES_TO[promo.target] }}</div></div>
           <div class="bo-kv"><div>Discount</div><div>{{ MODE_LABEL[promo.mode] }} · {{ discountLabel(promo) }}</div></div>
           <div class="bo-kv"><div>Currency</div><div>{{ promo.currency }}</div></div>
           <div class="bo-kv">
-            <div>Eligible scope</div>
+            <div>{{ promo.target === 'RENEWAL' ? 'Eligible plans' : 'Eligible scope' }}</div>
             <div class="bo-rowflex" style="gap: 6px"><span v-for="s in promo.scope" :key="s" class="bo-tag">{{ s }}</span></div>
           </div>
           <div class="bo-kv"><div>Starts</div><div>{{ fmtDateTime(promo.start) }}</div></div>

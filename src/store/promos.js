@@ -11,6 +11,12 @@ export const scopeItems = target =>
 export const itemPrice = id => ((planById(id) || addonById(id) || { price: 0 }).price) * 100
 
 export const TARGET_LABEL = { PLAN: 'Plan', ADD_ON: 'Add-on', RENEWAL: 'Renewal' }
+// What the discount is calculated on, per target type.
+export const APPLIES_TO = {
+  PLAN: 'Base plan line only',
+  ADD_ON: 'Selected add-on line only',
+  RENEWAL: 'Total renewal invoice: plan + add-ons + extra seats'
+}
 export const MODE_LABEL = { PERCENTAGE: 'Percentage', FIXED_AMOUNT: 'Fixed amount', FULL_DISCOUNT: 'Full discount' }
 
 // Status is derived from draft flag, provider sync, manual deactivation and the validity window.
