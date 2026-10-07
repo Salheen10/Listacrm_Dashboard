@@ -128,9 +128,14 @@ textarea.bo-in { min-height: 84px; resize: vertical; }
 .bo-delta { font-size: 13px; font-weight: 700; color: var(--bo-muted); }
 .bo-delta.up { color: var(--bo-good); }
 .bo-delta.down { color: var(--bo-bad); }
-.bo-spark { flex: 1 1 90px; max-width: 130px; height: 46px; }
+.bo-spark { flex: 1 1 90px; max-width: 150px; height: 52px; }
 .bo-info { width: 22px; height: 22px; border-radius: 50%; border: 1px solid var(--bo-line-strong); background: #fff; font-size: 12px; font-weight: 700; color: var(--bo-muted); cursor: pointer; flex: none; padding: 0; }
 .bo-info:hover { background: var(--bo-primary-soft); color: var(--bo-primary-dark); }
+.bo-kpi-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; border-radius: 8px; background: none; color: var(--bo-muted); cursor: pointer; flex: none; padding: 0; margin: -4px -4px 0 0; }
+.bo-kpi-icon:hover, .bo-kpi-icon[aria-expanded="true"] { background: var(--bo-primary-soft); color: var(--bo-primary-dark); }
+.bo-kpi-icon:focus-visible { outline: 2px solid var(--bo-primary); outline-offset: 2px; }
+.bo-minibars { display: flex; align-items: flex-end; gap: 3px; height: 38px; flex: none; }
+.bo-minibars i { display: block; width: 6px; border-radius: 2px; }
 .bo-help { font-size: 12px; color: #3b4658; background: var(--bo-bg); border-radius: 8px; padding: 8px 10px; }
 
 /* ---------- MRR movement chart ---------- */

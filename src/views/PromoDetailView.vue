@@ -173,7 +173,6 @@ const deactivate = () => {
           </div>
           <div class="bo-kv"><div>Starts</div><div>{{ fmtDateTime(promo.start) }}</div></div>
           <div class="bo-kv"><div>Ends</div><div>{{ fmtDateTime(promo.end) }}</div></div>
-          <div class="bo-kv"><div>Timezone</div><div>{{ promo.tz }}</div></div>
           <div class="bo-kv"><div>Per workspace</div><div>One successful use</div></div>
           <div class="bo-kv"><div>Total cap</div><div>{{ promo.cap ? promo.cap.toLocaleString('en-US') + ' redemptions' : 'Unlimited' }}</div></div>
           <div v-if="promo.manual" class="bo-kv"><div>Deactivated</div><div>{{ fmtDateTime(promo.manual.at) }} by {{ promo.manual.by }} — {{ promo.manual.reason }}</div></div>

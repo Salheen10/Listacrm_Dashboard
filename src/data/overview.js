@@ -54,8 +54,10 @@ const ppDelta = (cur, prev, inverse = false) => {
 const NONE = { text: '—', tone: FLAT }
 
 const series = (cur, prev, seed) => {
-  const amp = Math.abs(cur - prev) * 0.3 + Math.abs(cur) * 0.006
-  return Array.from({ length: 12 }, (_, i) => prev + (cur - prev) * i / 11 + (i === 11 ? 0 : Math.sin(i * 1.3 + seed) * amp))
+  // Trend line toward the current value; a small wobble keeps it from looking ruled.
+  const span = Math.max(Math.abs(cur - prev), Math.abs(cur) * 0.03) * (cur >= prev ? 1 : -1)
+  const start = cur - span
+  return Array.from({ length: 12 }, (_, i) => start + span * i / 11 + (i === 11 ? 0 : Math.sin(i * 1.3 + seed) * Math.abs(span) * 0.12))
 }
 
 // Points for an SVG polyline in a 100 x 40 box.
@@ -141,11 +143,15 @@ export function buildOverview(workspaces, { plan, type, period }, promoSyncFailu
   const newWs = Math.round(sum(r => r.newWs) * f), lostWs = Math.round(sum(r => r.lostWs) * f)
   const invoices = Math.round(T * f), collected = gross * 0.94
   const paidTenants = Math.min(T, Math.max(invoices - sum(r => r.pd), 0))
-  const mini = (label, cur, prev, value, inverse, sub) => ({ label, value, delta: pctDelta(cur, prev, inverse), sub })
+  const miniBars = (cur, prev, seed) => {
+    const v = series(cur, prev, seed).slice(-6), mx = Math.max(...v, 1)
+    return v.map(x => Math.max(18, Math.round(x / mx * 100)))
+  }
+  const mini = (label, cur, prev, value, inverse, sub) => ({ label, value, delta: pctDelta(cur, prev, inverse), sub, bars: miniBars(cur, prev, label.length) })
   const minis = [
     mini('New workspaces', newWs, Math.round(newWs / 1.12), String(newWs), false, vs(Math.round(newWs / 1.12))),
     mini('Lost workspaces', lostWs, Math.round(lostWs * 1.22), String(lostWs), true, vs(Math.round(lostWs * 1.22))),
-    { label: 'Total workspaces', value: sum(r => r.totalWs).toLocaleString('en-US'), delta: { text: '', tone: FLAT }, sub: `+${newWs} in this period` },
+    { label: 'Total workspaces', value: sum(r => r.totalWs).toLocaleString('en-US'), delta: { text: '—', tone: FLAT }, sub: `+${newWs} in this period`, bars: miniBars(sum(r => r.totalWs), sum(r => r.totalWs) - newWs * 6, 3) },
     mini('Invoices', invoices, Math.round(invoices / 1.06), String(invoices), false, vs(Math.round(invoices / 1.06))),
     mini('Collected', collected, collected / 1.084, money(collected), false, vs(money(collected / 1.084))),
     mini('Paid tenants', paidTenants, Math.round(paidTenants / 1.037), String(paidTenants), false, vs(Math.round(paidTenants / 1.037)))

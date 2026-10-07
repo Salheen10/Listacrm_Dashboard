@@ -20,6 +20,25 @@ const mixBy = ref('tenants')
 const showAllAlerts = ref(false)
 const feed = ref('all')
 
+// Card icons (24px stroke paths)
+const ICONS = {
+  mrr: 'M12 3v18M16 7h-6a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6H8',
+  arr: 'M3 17l6-6 4 4 8-8M15 7h6v6',
+  apt: 'M5 21V5h9v16M14 10h5v11M3 21h18M8 9h3M8 13h3',
+  gross: 'M6 3h9l4 4v14H6zM9 12h7M9 16h7',
+  arpu: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6',
+  ltv: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
+  churn: 'M3 12h4l3-7 4 14 3-7h4',
+  t2p: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 3-5 6-5s6 2 6 5M17 5a3 3 0 0 1 0 6M21 20c0-2-1-4-3-5',
+  'New workspaces': 'M5 21V5h9v16M3 21h18M17 8v6M14 11h6',
+  'Lost workspaces': 'M5 21V5h9v16M3 21h18M14 11h6',
+  'Total workspaces': 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 3-5 6-5s6 2 6 5M17 5a3 3 0 0 1 0 6M21 20c0-2-1-4-3-5',
+  Invoices: 'M6 3h9l4 4v14H6zM9 12h7M9 16h7',
+  Collected: 'M4 7c0-2 16-2 16 0v10c0 2-16 2-16 0zM4 7c0 2 16 2 16 0M4 12c0 2 16 2 16 0',
+  'Paid tenants': 'M3 6h18v12H3zM3 10h18'
+}
+const BAR_TONE = { up: '#22a35a', down: '#e5484d', flat: '#8fb4f5' }
+
 const MIX_MODES = [['all', 'All tenants'], ['with', 'With add-ons'], ['without', 'Without add-ons'], ['addons', 'Add-ons only']]
 const MIX_BYS = [['tenants', 'By tenants'], ['mrr', 'By MRR']]
 
@@ -86,18 +105,26 @@ const reset = () => {
 
     <section class="bo-grid-kpi" aria-label="Revenue and unit economics">
       <div v-for="k in data.kpis" :key="k.id" class="bo-card bo-kpi">
-        <div class="bo-between" style="align-items: center; flex-wrap: nowrap">
+        <div class="bo-between" style="align-items: flex-start; flex-wrap: nowrap">
           <div class="bo-kpi-label">{{ k.label }}</div>
-          <button class="bo-info" :aria-label="`How ${k.label} is calculated`" :aria-expanded="openHelp === k.id" @click="openHelp = openHelp === k.id ? null : k.id">i</button>
+          <button class="bo-kpi-icon" :title="`How ${k.label} is calculated`" :aria-label="`How ${k.label} is calculated`" :aria-expanded="openHelp === k.id" @click="openHelp = openHelp === k.id ? null : k.id">
+            <svg class="bo-ic" viewBox="0 0 24 24" aria-hidden="true"><path :d="ICONS[k.id]" /></svg>
+          </button>
         </div>
         <div class="bo-between" style="align-items: flex-end; flex-wrap: nowrap">
           <div style="min-width: 0">
-            <div class="bo-kpi-value">{{ k.value }}</div>
             <div class="bo-delta" :class="k.delta.tone">{{ k.delta.text }}</div>
+            <div class="bo-kpi-value">{{ k.value }}</div>
             <div class="bo-hint">{{ k.sub }}</div>
           </div>
           <svg class="bo-spark" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">
-            <polygon :points="`0,40 ${k.points} 100,40`" :fill="k.color" opacity="0.12" />
+            <defs>
+              <linearGradient :id="`spark-${k.id}`" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" :stop-color="k.color" stop-opacity="0.28" />
+                <stop offset="1" :stop-color="k.color" stop-opacity="0" />
+              </linearGradient>
+            </defs>
+            <polygon :points="`0,40 ${k.points} 100,40`" :fill="`url(#spark-${k.id})`" />
             <polyline :points="k.points" fill="none" :stroke="k.color" stroke-width="2" vector-effect="non-scaling-stroke" />
           </svg>
         </div>
@@ -106,13 +133,21 @@ const reset = () => {
     </section>
 
     <section class="bo-grid-mini" aria-label="Workspace growth and billing activity">
-      <div v-for="k in data.minis" :key="k.label" class="bo-card" style="padding: 12px 14px">
-        <div class="bo-kpi-label">{{ k.label }}</div>
-        <div class="bo-rowflex" style="align-items: baseline; gap: 8px">
-          <div class="bo-kpi-value sm">{{ k.value }}</div>
-          <div class="bo-delta" :class="k.delta.tone">{{ k.delta.text }}</div>
+      <div v-for="k in data.minis" :key="k.label" class="bo-card bo-kpi">
+        <div class="bo-between" style="align-items: flex-start; flex-wrap: nowrap">
+          <div class="bo-kpi-label">{{ k.label }}</div>
+          <svg class="bo-ic" viewBox="0 0 24 24" aria-hidden="true" style="color: var(--bo-muted)"><path :d="ICONS[k.label]" /></svg>
         </div>
-        <div class="bo-hint">{{ k.sub }}</div>
+        <div class="bo-between" style="align-items: flex-end; flex-wrap: nowrap">
+          <div style="min-width: 0">
+            <div class="bo-delta" :class="k.delta.tone">{{ k.delta.text }}</div>
+            <div class="bo-kpi-value sm">{{ k.value }}</div>
+            <div class="bo-hint">{{ k.sub }}</div>
+          </div>
+          <div class="bo-minibars" aria-hidden="true">
+            <i v-for="(h, i) in k.bars" :key="i" :style="{ height: h + '%', background: BAR_TONE[k.delta.tone], opacity: 0.35 + i * 0.13 }"></i>
+          </div>
+        </div>
       </div>
     </section>
 
