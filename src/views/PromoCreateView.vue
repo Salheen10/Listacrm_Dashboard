@@ -38,9 +38,22 @@ const scopeNoun = computed(() => (form.target === 'ADD_ON' ? 'add-on' : 'plan'))
 const startAt = computed(() => (form.startDate && form.startTime ? `${form.startDate}T${form.startTime}` : ''))
 const endAt = computed(() => (form.endDate && form.endTime ? `${form.endDate}T${form.endTime}` : ''))
 
+// Availability check result for the code currently in the field: null | 'checking' | 'available' | 'taken'
+const codeCheck = ref(null)
 const onCode = e => {
   form.code = e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g, '').slice(0, 24)
   e.target.value = form.code
+  codeCheck.value = null
+  if (errors.value.code) errors.value = { ...errors.value, code: undefined }
+}
+// Looks the normalized code up before the admin fills in the rest of the form (server call in production).
+const checkCode = async () => {
+  if (!form.code || codeCheck.value === 'checking') return
+  const code = form.code
+  codeCheck.value = 'checking'
+  await new Promise(resolve => setTimeout(resolve, 600))
+  if (form.code !== code) return
+  codeCheck.value = store.isCodeTaken(code, form.id) ? 'taken' : 'available'
 }
 const setTarget = t => { if (form.target !== t) { form.target = t; form.scope = []; previewItem.value = '' } }
 const setMode = m => { form.mode = m; if (m === 'FULL_DISCOUNT') form.value = '' }
@@ -167,9 +180,16 @@ const checks = computed(() => {
             <div class="bo-fields">
               <div>
                 <label class="bo-lbl" for="pc-code">Promo code <span class="req">*</span></label>
-                <input id="pc-code" class="bo-in bo-mono" :class="{ err: errors.code }" :value="form.code" placeholder="WINTER26" autocomplete="off" @input="onCode" />
-                <div v-if="errors.code" class="bo-err">{{ errors.code }}</div>
-                <div v-else class="bo-hint" style="margin-top: 4px">Uppercase letters, numbers and hyphens. Must be unique.</div>
+                <div class="bo-rowflex" style="flex-wrap: nowrap; gap: 8px">
+                  <input id="pc-code" class="bo-in bo-mono" :class="{ err: errors.code || codeCheck === 'taken' }" :value="form.code" placeholder="WINTER26" autocomplete="off" aria-describedby="pc-code-status" @input="onCode" @keydown.enter.prevent="checkCode" />
+                  <button class="bo-btn" :disabled="!form.code || codeCheck === 'checking'" @click="checkCode">{{ codeCheck === 'checking' ? 'Checking…' : 'Check availability' }}</button>
+                </div>
+                <div id="pc-code-status" role="status">
+                  <div v-if="errors.code" class="bo-err">{{ errors.code }}</div>
+                  <div v-else-if="codeCheck === 'taken'" class="bo-err">{{ form.code }} already exists. Use a different code.</div>
+                  <div v-else-if="codeCheck === 'available'" class="bo-ok">✓ {{ form.code }} is available.</div>
+                  <div v-else class="bo-hint" style="margin-top: 4px">Uppercase letters, numbers and hyphens. Must be unique.</div>
+                </div>
               </div>
               <div>
                 <label class="bo-lbl" for="pc-name">Internal display name <span class="req">*</span></label>
