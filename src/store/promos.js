@@ -47,80 +47,80 @@ const log = (at, what, who = ACTOR) => ({ at, who, what })
 
 const seed = () => [
   {
-    id: 'promo-spring26', code: 'SPRING26', name: 'Spring 2026 Campaign', label: 'Spring Special – 20% Off',
+    id: 'promo-autumn26', code: 'AUTUMN26', name: 'Autumn 2026 Campaign', label: 'Autumn Special – 20% Off',
     desc: 'Seasonal promotion for new workspaces. 20% off the first invoice.',
     target: 'PLAN', mode: 'PERCENTAGE', value: 20, currency: 'USD', scope: ['Growth', 'Brokerage'], cap: null,
-    start: '2026-04-01T00:00', end: '2026-06-30T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
-    stripe: { coupon: 'co_spring26', promotion: 'promo_spring26' }, createdBy: ACTOR, createdAt: '2026-03-25T10:12',
+    start: '2026-09-01T00:00', end: '2026-11-30T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
+    stripe: { coupon: 'co_autumn26', promotion: 'promo_autumn26' }, createdBy: ACTOR, createdAt: '2026-08-25T10:12',
     reds: [
-      red('Green Valley Homes', 'WS-20001', 'INV-26-0412', 'Growth', '2026-05-04T09:12'),
-      red('Elite Home Team', 'WS-20002', 'INV-26-0397', 'Growth', '2026-04-28T14:40'),
-      red('Summit Brokers', 'WS-30003', 'INV-26-0371', 'Brokerage', '2026-04-21T11:05'),
-      red('Crown Realty Group', 'WS-30007', 'INV-26-0349', 'Brokerage', '2026-04-14T16:22'),
-      red('Amber Properties', 'WS-20013', 'INV-26-0318', 'Growth', '2026-04-06T08:51')
+      red('Green Valley Homes', 'WS-20001', 'INV-26-0412', 'Growth', '2026-10-04T09:12'),
+      red('Elite Home Team', 'WS-20002', 'INV-26-0397', 'Growth', '2026-09-28T14:40'),
+      red('Summit Brokers', 'WS-30003', 'INV-26-0371', 'Brokerage', '2026-09-21T11:05'),
+      red('Crown Realty Group', 'WS-30007', 'INV-26-0349', 'Brokerage', '2026-09-14T16:22'),
+      red('Amber Properties', 'WS-20013', 'INV-26-0318', 'Growth', '2026-09-06T08:51')
     ],
     failed: [
-      { ws: 'Skyline Realty', wsId: 'WS-20004', reason: 'Payment failed — promo not consumed', at: '2026-04-30T13:02' },
-      { ws: 'Atlas Realty', wsId: 'WS-20011', reason: 'Checkout abandoned — reservation released', at: '2026-04-17T19:44' }
+      { ws: 'Skyline Realty', wsId: 'WS-20004', reason: 'Payment failed — promo not consumed', at: '2026-09-30T13:02' },
+      { ws: 'Atlas Realty', wsId: 'WS-20011', reason: 'Checkout abandoned — reservation released', at: '2026-09-17T19:44' }
     ],
-    audit: [log('2026-03-25T10:12', 'Promo code created'), log('2026-03-25T10:12', 'Stripe coupon and promotion code synced', 'System')]
+    audit: [log('2026-08-25T10:12', 'Promo code created'), log('2026-08-25T10:12', 'Stripe coupon and promotion code synced', 'System')]
   },
   {
     id: 'promo-idxlaunch', code: 'IDXLAUNCH', name: 'IDX Core launch offer', label: '$50 off IDX Core',
     desc: 'Launch incentive for the first IDX Core invoice.',
     target: 'ADD_ON', mode: 'FIXED_AMOUNT', value: 50, currency: 'USD', scope: ['IDX Core'], cap: 200,
-    start: '2026-03-01T00:00', end: '2026-05-31T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
-    stripe: { coupon: 'co_idxlaunch', promotion: 'promo_idxlaunch' }, createdBy: ACTOR, createdAt: '2026-02-24T09:30',
+    start: '2026-08-01T00:00', end: '2026-10-31T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
+    stripe: { coupon: 'co_idxlaunch', promotion: 'promo_idxlaunch' }, createdBy: ACTOR, createdAt: '2026-07-24T09:30',
     reds: [
-      red('Trust Brokers', 'WS-20003', 'INV-26-0366', 'IDX Core', '2026-04-20T10:18', 'Add-on purchase'),
-      red('Capital Brokers', 'WS-20009', 'INV-26-0301', 'IDX Core', '2026-04-02T15:07', 'Add-on purchase'),
-      red('Silver Key Homes', 'WS-20014', 'INV-26-0244', 'IDX Core', '2026-03-12T12:33', 'Add-on purchase')
+      red('Trust Brokers', 'WS-20003', 'INV-26-0366', 'IDX Core', '2026-09-20T10:18', 'Add-on purchase'),
+      red('Capital Brokers', 'WS-20009', 'INV-26-0301', 'IDX Core', '2026-09-02T15:07', 'Add-on purchase'),
+      red('Silver Key Homes', 'WS-20014', 'INV-26-0244', 'IDX Core', '2026-08-12T12:33', 'Add-on purchase')
     ],
     failed: [],
-    audit: [log('2026-02-24T09:30', 'Promo code created'), log('2026-02-24T09:30', 'Stripe coupon and promotion code synced', 'System')]
+    audit: [log('2026-07-24T09:30', 'Promo code created'), log('2026-07-24T09:30', 'Stripe coupon and promotion code synced', 'System')]
   },
   {
-    id: 'promo-renew15', code: 'RENEW15', name: 'Summer renewal retention', label: '15% off your next renewal',
+    id: 'promo-renew15', code: 'RENEW15', name: 'Winter renewal retention', label: '15% off your next renewal',
     desc: 'Retention offer applied at the next renewal charge.',
     target: 'RENEWAL', mode: 'PERCENTAGE', value: 15, currency: 'USD', scope: ['Solo', 'Growth'], cap: null,
-    start: '2026-06-01T00:00', end: '2026-08-31T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
-    stripe: { coupon: 'co_renew15', promotion: 'promo_renew15' }, createdBy: ACTOR, createdAt: '2026-04-29T17:02',
+    start: '2026-11-01T00:00', end: '2027-01-31T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
+    stripe: { coupon: 'co_renew15', promotion: 'promo_renew15' }, createdBy: ACTOR, createdAt: '2026-09-29T17:02',
     reds: [], failed: [],
-    audit: [log('2026-04-29T17:02', 'Promo code created (scheduled)'), log('2026-04-29T17:02', 'Stripe coupon and promotion code synced', 'System')]
+    audit: [log('2026-09-29T17:02', 'Promo code created (scheduled)'), log('2026-09-29T17:02', 'Stripe coupon and promotion code synced', 'System')]
   },
   {
     id: 'promo-welcome100', code: 'WELCOME100', name: 'Solo launch — first month free', label: 'First month free',
     desc: 'Full discount on the first Solo invoice.',
     target: 'PLAN', mode: 'FULL_DISCOUNT', value: 0, currency: 'USD', scope: ['Solo'], cap: null,
-    start: '2025-11-01T00:00', end: '2026-01-31T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
-    stripe: { coupon: 'co_welcome100', promotion: 'promo_welcome100' }, createdBy: ACTOR, createdAt: '2025-10-27T11:45',
+    start: '2026-04-01T00:00', end: '2026-06-30T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
+    stripe: { coupon: 'co_welcome100', promotion: 'promo_welcome100' }, createdBy: ACTOR, createdAt: '2026-03-27T11:45',
     reds: [
-      red('Lighthouse Realty', 'WS-10008', 'INV-26-0058', 'Solo', '2026-01-22T10:10'),
-      red('Cedar Homes', 'WS-10009', 'INV-26-0031', 'Solo', '2026-01-09T13:26'),
-      red('Sahara Estates', 'WS-10011', 'INV-25-0988', 'Solo', '2025-12-15T09:02'),
-      red('Coral Bay Realty', 'WS-10012', 'INV-25-0941', 'Solo', '2025-11-28T16:48')
+      red('Lighthouse Realty', 'WS-10008', 'INV-26-0058', 'Solo', '2026-06-22T10:10'),
+      red('Cedar Homes', 'WS-10009', 'INV-26-0031', 'Solo', '2026-06-09T13:26'),
+      red('Sahara Estates', 'WS-10011', 'INV-25-0988', 'Solo', '2026-05-15T09:02'),
+      red('Coral Bay Realty', 'WS-10012', 'INV-25-0941', 'Solo', '2026-04-28T16:48')
     ],
     failed: [],
-    audit: [log('2025-10-27T11:45', 'Promo code created'), log('2026-01-31T23:59', 'Promo code expired', 'System')]
+    audit: [log('2026-03-27T11:45', 'Promo code created'), log('2026-06-30T23:59', 'Promo code expired', 'System')]
   },
   {
     id: 'promo-broker10', code: 'BROKER10', name: 'Brokerage partner referral', label: '10% off Brokerage',
     desc: 'Partner referral offer.',
     target: 'PLAN', mode: 'PERCENTAGE', value: 10, currency: 'USD', scope: ['Brokerage'], cap: null,
-    start: '2026-02-01T00:00', end: '2026-07-31T23:59', tz: 'UTC', manual: { at: '2026-04-12T15:30', by: ACTOR, reason: 'Campaign ended early' }, sync: 'Synced', draft: false,
-    stripe: { coupon: 'co_broker10', promotion: 'promo_broker10' }, createdBy: ACTOR, createdAt: '2026-01-28T08:20',
-    reds: [red('Vista Properties', 'WS-30009', 'INV-26-0199', 'Brokerage', '2026-02-26T14:14')],
+    start: '2026-07-01T00:00', end: '2026-12-31T23:59', tz: 'UTC', manual: { at: '2026-09-12T15:30', by: ACTOR, reason: 'Campaign ended early' }, sync: 'Synced', draft: false,
+    stripe: { coupon: 'co_broker10', promotion: 'promo_broker10' }, createdBy: ACTOR, createdAt: '2026-06-28T08:20',
+    reds: [red('Vista Properties', 'WS-30009', 'INV-26-0199', 'Brokerage', '2026-07-26T14:14')],
     failed: [],
-    audit: [log('2026-01-28T08:20', 'Promo code created'), log('2026-04-12T15:30', 'Deactivated — Campaign ended early')]
+    audit: [log('2026-06-28T08:20', 'Promo code created'), log('2026-09-12T15:30', 'Deactivated — Campaign ended early')]
   },
   {
     id: 'promo-seats20', code: 'SEATS20', name: 'Extra seats expansion push', label: '$20 off extra seats',
     desc: 'Expansion incentive for growing teams.',
     target: 'ADD_ON', mode: 'FIXED_AMOUNT', value: 20, currency: 'USD', scope: ['Extra Seat'], cap: null,
-    start: '2026-05-01T00:00', end: '2026-07-31T23:59', tz: 'UTC', manual: null, sync: 'Failed', draft: false,
-    stripe: null, createdBy: ACTOR, createdAt: '2026-05-03T16:05',
+    start: '2026-10-01T00:00', end: '2026-12-31T23:59', tz: 'UTC', manual: null, sync: 'Failed', draft: false,
+    stripe: null, createdBy: ACTOR, createdAt: '2026-10-03T16:05',
     reds: [], failed: [],
-    audit: [log('2026-05-03T16:05', 'Promo code created'), log('2026-05-03T16:05', 'Stripe sync failed — provider temporarily unavailable', 'System')]
+    audit: [log('2026-10-03T16:05', 'Promo code created'), log('2026-10-03T16:05', 'Stripe sync failed — provider temporarily unavailable', 'System')]
   }
 ]
 

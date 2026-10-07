@@ -1,7 +1,7 @@
 // Commercial catalogue used by the backoffice mock.
 // In production these come from the versioned plan/add-on catalogue API, never from the dashboard bundle.
 
-export const NOW = '2026-05-04T12:00'
+export const NOW = '2026-10-07T12:00'
 
 export const PLANS = [
   { id: 'Solo', price: 79, freeSeats: 1, color: '#f0a23a' },

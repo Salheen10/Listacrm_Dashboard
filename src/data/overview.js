@@ -1,14 +1,14 @@
 // Executive Overview read model.
-// Stock metrics (MRR, tenants, plan mix, add-on attach, revenue at risk) are derived from the workspace records.
-// Period comparisons and flow counts are mock ratios until the aggregation API exists — the UI must not own formulas.
+// Mirrors the approved design: every figure is computed from one plan-level snapshot so cards, charts and
+// tables reconcile. The snapshot and comparison ratios are mock until the aggregation API exists.
 import { PLANS, ADDONS } from './catalog'
 import { money } from '../utils/format'
 
 export const PERIODS = {
-  mtd: { label: 'Current month (MTD)', f: 4 / 31, sf: 0.15, range: 'May 1 – May 4, 2026', cmp: 'compared with Apr 1 – Apr 4', prev: 'same days last month' },
-  d30: { label: 'Last 30 days', f: 1, sf: 1, range: 'Apr 5 – May 4, 2026', cmp: 'compared with the previous 30 days', prev: 'previous 30 days' },
-  d90: { label: 'Last 90 days', f: 3, sf: 2.9, range: 'Feb 4 – May 4, 2026', cmp: 'compared with the previous 90 days', prev: 'previous 90 days' },
-  ytd: { label: 'Year to date', f: 4.1, sf: 3.9, range: 'Jan 1 – May 4, 2026', cmp: 'compared with the same period in 2025', prev: 'same period last year' }
+  mtd: { label: 'Current month (MTD)', f: 7 / 31, sf: 0.25, range: 'Oct 1 – Oct 7, 2026', cmp: 'compared with Sep 1 – Sep 7', prev: 'same days last month' },
+  d30: { label: 'Last 30 days', f: 1, sf: 1, range: 'Sep 8 – Oct 7, 2026', cmp: 'compared with the previous 30 days', prev: 'previous 30 days' },
+  d90: { label: 'Last 90 days', f: 3, sf: 2.9, range: 'Jul 10 – Oct 7, 2026', cmp: 'compared with the previous 90 days', prev: 'previous 90 days' },
+  ytd: { label: 'Year to date', f: 9.2, sf: 8.4, range: 'Jan 1 – Oct 7, 2026', cmp: 'compared with the same period in 2025', prev: 'same period last year' }
 }
 
 export const TENANT_TYPES = [
@@ -18,24 +18,24 @@ export const TENANT_TYPES = [
   { id: 'brokerage', label: 'Brokerage' }
 ]
 
-const tenantType = w => (w.users <= 1 ? 'agent' : w.users <= 10 ? 'team' : 'brokerage')
-
-// Mock monthly flow counts per plan (lost paid tenants, trial outcomes, workspace movement).
-const FLOWS = {
-  Solo: { lost: 1, conv: 5, ended: 12, newWs: 3, lostWs: 1, archived: 4, trials: 2 },
-  Growth: { lost: 1, conv: 4, ended: 8, newWs: 2, lostWs: 1, archived: 3, trials: 1 },
-  Brokerage: { lost: 0, conv: 1, ended: 2, newWs: 1, lostWs: 0, archived: 1, trials: 0 },
-  Enterprise: { lost: 0, conv: 0, ended: 0, newWs: 0, lostWs: 0, archived: 0, trials: 0 }
+// Plan-level snapshot the aggregation API will return (mock).
+// t: active paid tenants, wa: tenants with at least one add-on, ts: tenant-type shares,
+// ad: [tenants, units] per add-on, then monthly flow and alert counts.
+const SNAPSHOT = {
+  Solo: { t: 96, wa: 22, lost: 4, conv: 21, ended: 52, newWs: 14, lostWs: 5, totalWs: 148, inv: 98, pd: 9, tr: 3, mls: 4, ms: 2, big: 0, rt: 3, ts: { agent: 1, team: 0, brokerage: 0 }, ad: { 'IDX Core': [6, 6], 'IDX Pro': [0, 0], 'Extra Seat': [0, 0], 'Extra Microsite': [18, 18] } },
+  Growth: { t: 168, wa: 104, lost: 4, conv: 19, ended: 36, newWs: 11, lostWs: 4, totalWs: 201, inv: 176, pd: 7, tr: 2, mls: 5, ms: 4, big: 0, rt: 2, ts: { agent: 0.12, team: 0.74, brokerage: 0.14 }, ad: { 'IDX Core': [41, 41], 'IDX Pro': [22, 22], 'Extra Seat': [52, 148], 'Extra Microsite': [37, 74] } },
+  Brokerage: { t: 58, wa: 44, lost: 1, conv: 6, ended: 10, newWs: 3, lostWs: 1, totalWs: 66, inv: 63, pd: 3, tr: 0, mls: 3, ms: 2, big: 2, rt: 1, ts: { agent: 0, team: 0.1, brokerage: 0.9 }, ad: { 'IDX Core': [12, 12], 'IDX Pro': [27, 27], 'Extra Seat': [31, 264], 'Extra Microsite': [22, 131] } },
+  Enterprise: { t: 13, wa: 12, lost: 0, conv: 0, ended: 0, newWs: 0, lostWs: 0, totalWs: 14, inv: 14, pd: 0, tr: 0, mls: 0, ms: 0, big: 1, rt: 0, ts: { agent: 0, team: 0, brokerage: 1 }, ad: { 'IDX Core': [1, 1], 'IDX Pro': [11, 11], 'Extra Seat': [9, 410], 'Extra Microsite': [8, 240] } }
 }
 
-// Monthly MRR movement as % of MRR, 12 months ending May 2026.
+// Monthly MRR movement as % of MRR, 12 months ending Oct 2026.
 const MOVE = {
   n: [1.9, 2.1, 1.7, 2.4, 2.0, 1.8, 2.2, 2.6, 2.3, 2.1, 2.5, 2.2],
   e: [0.9, 1.0, 0.8, 1.1, 1.2, 0.9, 1.0, 1.3, 1.1, 1.2, 1.4, 1.1],
   c: [0.4, 0.3, 0.5, 0.4, 0.3, 0.6, 0.4, 0.3, 0.4, 0.5, 0.3, 0.4],
   h: [0.9, 0.8, 1.1, 0.7, 0.9, 1.0, 0.8, 0.7, 0.9, 0.8, 0.7, 1.1]
 }
-const MONTHS = ['Jun 2025', 'Jul 2025', 'Aug 2025', 'Sep 2025', 'Oct 2025', 'Nov 2025', 'Dec 2025', 'Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026']
+const MONTHS = ['Nov 2025', 'Dec 2025', 'Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026', 'Jul 2026', 'Aug 2026', 'Sep 2026', 'Oct 2026']
 
 const GOOD = 'up', BAD = 'down', FLAT = 'flat'
 
@@ -49,6 +49,7 @@ const pctDelta = (cur, prev, inverse = false) => {
 // Rate metrics change in percentage points, never relative percent.
 const ppDelta = (cur, prev, inverse = false) => {
   const d = cur - prev, up = d >= 0
+  if (Math.abs(d) < 0.05) return { text: 'No change', tone: FLAT }
   return { text: `${up ? '↑' : '↓'} ${Math.abs(d).toFixed(1)} pp`, tone: Math.abs(d) < 0.05 ? FLAT : ((inverse ? !up : up) ? GOOD : BAD) }
 }
 const NONE = { text: '—', tone: FLAT }
@@ -66,38 +67,22 @@ export const sparkPoints = vals => {
   return vals.map((v, i) => `${(i / (vals.length - 1) * 100).toFixed(1)},${(35 - (v - mn) / rg * 30).toFixed(1)}`).join(' ')
 }
 
-export function buildOverview(workspaces, { plan, type, period }, promoSyncFailures = []) {
+export function buildOverview({ plan, type, period }, promoSyncFailures = []) {
   const PD = PERIODS[period]
-  // Enterprise accounts still in contract are pipeline, not recurring revenue.
-  const billable = workspaces.filter(w => w.status !== 'Contract Required')
-  const inScope = w => (plan === 'all' || w.plan === plan) && (type === 'all' || tenantType(w) === type)
-
   const rows = PLANS.filter(p => plan === 'all' || p.id === plan).map(p => {
-    const all = billable.filter(w => w.plan === p.id)
-    const ws = all.filter(inScope)
-    const k = all.length ? ws.length / all.length : 0
-    const ad = Object.fromEntries(ADDONS.map(a => [a.id, { t: 0, mrr: 0 }]))
-    let wa = 0, mrr = 0, addMrr = 0, withMrr = 0, pd = 0, pdMrr = 0, big = 0, idxPending = 0
-    ws.forEach(w => {
-      const seats = Math.max(0, w.users - p.freeSeats)
-      const parts = {
-        'IDX Core': w.idx === 'IDX Core' ? 199 : 0,
-        'IDX Pro': w.idx === 'IDX Pro' ? 349 : 0,
-        'Extra Seat': seats * 35,
-        'Extra Microsite': w.microsites * 29
-      }
-      const add = Object.values(parts).reduce((x, v) => x + v, 0)
-      Object.entries(parts).forEach(([id, v]) => { if (v > 0) { ad[id].t += 1; ad[id].mrr += v } })
-      mrr += w.mrr; addMrr += add
-      if (add > 0) { wa += 1; withMrr += w.mrr }
-      if (w.status === 'Payment Failed') { pd += 1; pdMrr += w.mrr; if (w.mrr >= 1000) big += 1 }
-      if (w.idx !== 'Not Purchased' && w.onboarding !== 'First Value') idxPending += 1
+    const d = SNAPSHOT[p.id], k = type === 'all' ? 1 : d.ts[type], n = v => Math.round(v * k)
+    const t = n(d.t), wa = Math.min(t, n(d.wa))
+    let addMrr = 0
+    const ad = {}
+    ADDONS.forEach(a => {
+      const mrr = n(d.ad[a.id][1]) * a.price
+      ad[a.id] = { t: Math.min(wa, n(d.ad[a.id][0])), mrr }
+      addMrr += mrr
     })
-    const fl = FLOWS[p.id], n = v => Math.round(v * k)
     return {
-      plan: p, t: ws.length, wa, wo: ws.length - wa, mrr, addMrr, withMrr, woMrr: mrr - withMrr, ad,
-      pd, pdMrr, big, idxPending,
-      lost: n(fl.lost), conv: n(fl.conv), ended: n(fl.ended), newWs: n(fl.newWs), lostWs: n(fl.lostWs), totalWs: ws.length + n(fl.archived), trials: n(fl.trials)
+      plan: p, t, wa, wo: t - wa, addMrr, mrr: t * p.price + addMrr, withMrr: wa * p.price + addMrr, woMrr: (t - wa) * p.price, ad,
+      pd: n(d.pd), pdMrr: n(d.pd) * p.price, big: n(d.big), mls: n(d.mls), ms: n(d.ms), rt: n(d.rt), trials: n(d.tr),
+      lost: n(d.lost), conv: n(d.conv), ended: n(d.ended), newWs: n(d.newWs), lostWs: n(d.lostWs), totalWs: n(d.totalWs), inv: n(d.inv)
     }
   })
   const sum = f => rows.reduce((x, r) => x + f(r), 0)
@@ -141,8 +126,8 @@ export function buildOverview(workspaces, { plan, type, period }, promoSyncFailu
 
   // Secondary KPIs
   const newWs = Math.round(sum(r => r.newWs) * f), lostWs = Math.round(sum(r => r.lostWs) * f)
-  const invoices = Math.round(T * f), collected = gross * 0.94
-  const paidTenants = Math.min(T, Math.max(invoices - sum(r => r.pd), 0))
+  const invoices = Math.round(sum(r => r.inv) * f), collected = gross * 0.94
+  const paidTenants = f < 1 ? Math.round(T * 0.3) : Math.round(T * 0.96 + (f > 1 ? lost * f : 0))
   const miniBars = (cur, prev, seed) => {
     const v = series(cur, prev, seed).slice(-6), mx = Math.max(...v, 1)
     return v.map(x => Math.max(18, Math.round(x / mx * 100)))
@@ -166,13 +151,15 @@ export function buildOverview(workspaces, { plan, type, period }, promoSyncFailu
   })
 
   // Alerts — monitoring surfaces only; none of these approve or publish anything.
-  const pd = sum(r => r.pd), trials = sum(r => r.trials), big = sum(r => r.big), idxPending = sum(r => r.idxPending)
+  const pd = sum(r => r.pd), trials = sum(r => r.trials), big = sum(r => r.big), mls = sum(r => r.mls), ms = sum(r => r.ms), rt = sum(r => r.rt)
   const alerts = [
-    { sev: 'Critical', n: pd, title: `${pd} tenant${pd === 1 ? '' : 's'} past due`, detail: `${money(sum(r => r.pdMrr))} revenue at risk (past-due and grace MRR)`, age: '2h ago', to: 'billing', cta: 'Open billing' },
-    { sev: 'Warning', n: trials, title: `${trials} trial${trials === 1 ? '' : 's'} end within 7 days`, detail: 'The window is a configurable rule, not a fixed value', age: '3h ago', to: 'onboarding', cta: 'Open onboarding' },
-    { sev: 'Warning', n: big, title: `${big} large invoice${big === 1 ? '' : 's'} overdue`, detail: 'Outstanding $1,000 or more and past the due date', age: '1d ago', to: 'billing', cta: 'Open billing' },
-    ...promoSyncFailures.map(p => ({ sev: 'Warning', n: 1, title: 'Promo code failed Stripe sync', detail: `${p.code} is not redeemable until the sync is retried`, age: '1d ago', to: { name: 'promo-detail', params: { id: p.id } }, cta: 'Open promo code' })),
-    { sev: 'Info', n: idxPending, title: `${idxPending} IDX / MLS verification${idxPending === 1 ? '' : 's'} pending`, detail: 'Monitor only. Verification is agent and provider driven', age: '5h ago', to: 'compliance', cta: 'View status' }
+    { sev: 'Critical', n: pd, title: `${pd} tenants past due`, detail: `${money(sum(r => r.pdMrr))} revenue at risk (past-due and grace MRR)`, age: '2h ago', to: 'billing', cta: 'Open financials' },
+    { sev: 'Warning', n: trials, title: `${trials} trials end within 7 days`, detail: 'The window is a configurable rule, not a fixed value', age: '3h ago', to: 'onboarding', cta: 'Open onboarding' },
+    { sev: 'Warning', n: big, title: `${big} large invoices overdue`, detail: 'Outstanding $1,000 or more and past the due date', age: '1d ago', to: 'billing', cta: 'Open financials' },
+    ...promoSyncFailures.map(p => ({ sev: 'Warning', n: 1, title: '1 promo code failed Stripe sync', detail: `${p.code} is not redeemable until the sync is retried`, age: '1d ago', to: { name: 'promo-detail', params: { id: p.id } }, cta: 'Open promo code' })),
+    { sev: 'Info', n: mls, title: `${mls} MLS verifications pending`, detail: 'Monitor only. Verification is agent and provider driven', age: '5h ago', to: 'compliance', cta: 'View status' },
+    { sev: 'Info', n: ms, title: `${ms} microsites ready to publish`, detail: 'Customers self-publish once IDX is verified', age: '6h ago', to: 'compliance', cta: 'View status' },
+    { sev: 'Info', n: rt, title: `${rt} payment retries scheduled today`, detail: 'Dunning retries run automatically', age: '8h ago', to: 'billing', cta: 'Open financials' }
   ].filter(a => a.n > 0)
 
   return { period: PD, rows, total: { mrr: M, tenants: T }, empty: T === 0, kpis, minis, months: mv, chart: { unit: 150 / maxPos, negHeight: maxNeg * (150 / maxPos) + 2, linePoints: mv.map((m, i) => `${((i + 0.5) / 12 * 100).toFixed(2)},${m.y.toFixed(2)}`).join(' ') }, addons, alerts }
@@ -211,10 +198,10 @@ export function buildMix(rows, mode, by) {
 }
 
 export const ACTIVITY = [
-  { cat: 'Billing', plan: 'Growth', title: 'Promo code SPRING26 redeemed', detail: 'Green Valley Homes · Growth · saved $35.80', age: '10m ago' },
+  { cat: 'Billing', plan: 'Growth', title: 'Promo code AUTUMN26 redeemed', detail: 'Green Valley Homes · Growth · saved $35.80', age: '10m ago' },
   { cat: 'Workspace', plan: 'Solo', title: 'New workspace created', detail: 'Lighthouse Realty · Solo', age: '14m ago' },
   { cat: 'Billing', plan: 'Brokerage', title: 'Subscription upgraded', detail: 'Capital Brokers · Growth → Brokerage', age: '21m ago' },
-  { cat: 'Billing', plan: 'Brokerage', title: 'Invoice paid', detail: 'Summit Brokers · Brokerage', age: '34m ago' },
+  { cat: 'Billing', plan: 'Brokerage', title: 'Invoice paid', detail: 'Summit Brokers · Brokerage · $598.00', age: '34m ago' },
   { cat: 'Verification', plan: 'Growth', title: 'MLS verification confirmed by provider', detail: 'Pearl Real Estate · Growth', age: '52m ago' },
   { cat: 'Operator', title: 'Operator signed in', detail: 'mina magdy', age: '1h ago' },
   { cat: 'Billing', plan: 'Growth', title: 'Payment failed, retry scheduled', detail: 'Skyline Realty · Growth', age: '2h ago' },

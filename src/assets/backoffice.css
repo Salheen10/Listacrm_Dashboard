@@ -38,6 +38,10 @@ body {
 .bo-nav { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 8px; color: #c3cde0; font-size: 14px; text-decoration: none; margin-bottom: 2px; }
 .bo-nav:hover { background: var(--bo-side-hover); color: #fff; }
 .bo-nav.on { background: var(--bo-side-on); color: #fff; font-weight: 600; }
+.bo-nav.off { opacity: 0.62; cursor: default; }
+.bo-nav.off:hover { background: none; color: #c3cde0; }
+.bo-side-toggle { margin: 16px 12px 0; background: none; border: 1px solid #2a3654; border-radius: 8px; color: #8b98b3; font: inherit; font-size: 12px; font-weight: 600; padding: 7px 10px; cursor: pointer; }
+.bo-side-toggle:hover { color: #fff; border-color: #44537a; }
 .bo-ic { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
 .bo-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .bo-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; background: #fff; border-bottom: 1px solid var(--bo-line); padding: 8px 24px; min-height: 56px; position: sticky; top: 0; z-index: 10; }

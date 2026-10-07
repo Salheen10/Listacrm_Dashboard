@@ -10,50 +10,65 @@ const sidebarOpen = ref(true)
 
 const ICONS = {
   overview: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
-  onboarding: 'M4 9h13l-3-3M20 15H7l3 3',
-  workspaces: 'M5 21V5h9v16M14 10h5v11M3 21h18M8 9h3M8 13h3',
-  usage: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 3-5 6-5s6 2 6 5M17 5a3 3 0 0 1 0 6M21 20c0-2-1-4-3-5',
+  financials: 'M12 3v18M16 7h-6a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6H8',
+  subscriptions: 'M4 9h13l-3-3M20 15H7l3 3',
+  customers: 'M5 21V5h9v16M14 10h5v11M3 21h18M8 9h3M8 13h3',
+  users: 'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20c0-3 3-5 6-5s6 2 6 5M17 5a3 3 0 0 1 0 6M21 20c0-2-1-4-3-5',
   enterprise: 'M4 8h16v11H4zM9 8V5h6v3',
-  compliance: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
-  billing: 'M12 3v18M16 7h-6a3 3 0 0 0 0 6h4a3 3 0 0 1 0 6H8',
-  plans: 'M6 3h9l4 4v14H6zM9 12h7M9 16h7',
-  addons: 'M12 5v14M5 12h14',
-  seats: 'M3 6h18v12H3zM3 10h18',
+  communications: 'M21 3L10 14M21 3l-7 18-4-7-7-4z',
+  idx: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18',
+  invoices: 'M6 3h9l4 4v14H6zM9 12h7M9 16h7',
+  payments: 'M3 6h18v12H3zM3 10h18',
   promo: 'M3 12V4h8l10 10-8 8zM8 8h.01',
+  credit: 'M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6',
+  operators: 'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',
+  onboarding: 'M5 12l5 5 9-10',
+  addons: 'M12 5v14M5 12h14',
+  seats: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c0-4 4-6 8-6s8 2 8 6',
   ops: 'M12 3l9 16H3zM12 10v4M12 17h.01',
-  audit: 'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z'
+  audit: 'M5 4h14v16H5zM9 9h6M9 13h6M9 17h3'
 }
 
+// Navigation follows the approved design. Items without a route are not built yet and render dimmed.
+// "More" keeps the existing pages that the design does not list.
 const sections = computed(() => [
   {
     title: 'Workspace',
     items: [
       { name: 'overview', label: 'Overview', icon: 'overview' },
-      { name: 'onboarding', label: 'Onboarding', icon: 'onboarding' },
-      { name: 'workspaces', label: 'Customers', icon: 'workspaces' },
-      { name: 'usage', label: 'Users & Engagement', icon: 'usage' },
+      { name: 'billing', label: 'Financials', icon: 'financials' },
+      { name: 'plans', label: 'Subscriptions', icon: 'subscriptions' },
+      { name: 'workspaces', label: 'Customers', icon: 'customers' },
+      { name: 'usage', label: 'Users & Engagement', icon: 'users' },
       { name: 'enterprise', label: 'Enterprise', icon: 'enterprise' },
-      { name: 'compliance', label: 'IDX / MLS', icon: 'compliance', advanced: true }
+      { label: 'Communications', icon: 'communications' },
+      { name: 'compliance', label: 'IDX Requests', icon: 'idx', advanced: true }
     ]
   },
   {
     title: 'Billing',
     items: [
-      { name: 'billing', label: 'Financials', icon: 'billing' },
-      { name: 'plans', label: 'Plans', icon: 'plans' },
-      { name: 'addons', label: 'Add-ons', icon: 'addons', advanced: true },
-      { name: 'seats', label: 'Seats', icon: 'seats' },
-      { name: 'promo-codes', label: 'Promo Codes', icon: 'promo', match: 'promo' }
+      { label: 'Invoices', icon: 'invoices' },
+      { label: 'Payments', icon: 'payments' },
+      { name: 'promo-codes', label: 'Promo Codes', icon: 'promo', match: 'promo' },
+      { label: 'Credit Notes', icon: 'credit' }
     ]
   },
   {
     title: 'Settings',
+    items: [{ label: 'Operators', icon: 'operators' }]
+  },
+  {
+    title: 'More',
     items: [
+      { name: 'onboarding', label: 'Onboarding', icon: 'onboarding' },
+      { name: 'addons', label: 'Add-ons', icon: 'addons', advanced: true },
+      { name: 'seats', label: 'Seats', icon: 'seats' },
       { name: 'ops', label: 'Ops Alerts', icon: 'ops', advanced: true },
       { name: 'audit', label: 'Audit Logs', icon: 'audit', advanced: true }
     ]
   }
-].map(s => ({ ...s, items: s.items.filter(i => !(store.isMvpMode && i.advanced)) })).filter(s => s.items.length))
+].map(sec => ({ ...sec, items: sec.items.filter(i => !(store.isMvpMode && i.advanced)) })).filter(sec => sec.items.length))
 
 const isActive = item => (item.match ? String(route.name || '').startsWith(item.match) : route.name === item.name)
 
@@ -94,19 +109,19 @@ const toggleMvp = () => {
       <nav class="bo-navlist" aria-label="Backoffice">
         <template v-for="section in sections" :key="section.title">
           <div class="bo-navsec">{{ section.title }}</div>
-          <RouterLink
-            v-for="item in section.items"
-            :key="item.name"
-            :to="{ name: item.name }"
-            class="bo-nav"
-            :class="{ on: isActive(item) }"
-            :aria-current="isActive(item) ? 'page' : undefined"
-          >
-            <svg class="bo-ic" viewBox="0 0 24 24" aria-hidden="true"><path :d="ICONS[item.icon]" /></svg>
-            {{ item.label }}
-          </RouterLink>
+          <template v-for="item in section.items" :key="item.label">
+            <RouterLink v-if="item.name" :to="{ name: item.name }" class="bo-nav" :class="{ on: isActive(item) }" :aria-current="isActive(item) ? 'page' : undefined">
+              <svg class="bo-ic" viewBox="0 0 24 24" aria-hidden="true"><path :d="ICONS[item.icon]" /></svg>
+              {{ item.label }}
+            </RouterLink>
+            <span v-else class="bo-nav off" title="Not built yet">
+              <svg class="bo-ic" viewBox="0 0 24 24" aria-hidden="true"><path :d="ICONS[item.icon]" /></svg>
+              {{ item.label }}
+            </span>
+          </template>
         </template>
       </nav>
+      <button class="bo-side-toggle" @click="toggleMvp">{{ store.isMvpMode ? 'Switch to Advanced' : 'Switch to MVP' }}</button>
     </aside>
 
     <div class="bo-main">
@@ -118,7 +133,6 @@ const toggleMvp = () => {
           <div><strong>ListaCRM</strong> <span class="bo-hint" style="font-size: 14px">· Backoffice</span></div>
         </div>
         <div class="bo-top-right">
-          <button class="bo-btn sm" @click="toggleMvp">{{ store.isMvpMode ? 'Switch to Advanced' : 'Switch to MVP' }}</button>
           <div class="bo-avatar">MM</div>
           <div>
             <div style="font-weight: 600; line-height: 1.2">mina magdy</div>

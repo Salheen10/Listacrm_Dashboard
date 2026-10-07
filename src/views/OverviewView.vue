@@ -43,7 +43,7 @@ const MIX_MODES = [['all', 'All tenants'], ['with', 'With add-ons'], ['without',
 const MIX_BYS = [['tenants', 'By tenants'], ['mrr', 'By MRR']]
 
 const data = computed(() =>
-  buildOverview(store.rawData.workspaces, { plan: store.filters.plan, type: tenantType.value, period: period.value }, promos.syncFailures)
+  buildOverview({ plan: store.filters.plan, type: tenantType.value, period: period.value }, promos.syncFailures)
 )
 const mix = computed(() => buildMix(data.value.rows, mixMode.value, mixBy.value))
 const selected = computed(() => data.value.months[month.value])

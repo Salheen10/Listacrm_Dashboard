@@ -3,6 +3,7 @@ import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePromoStore, scopeItems, discountOf, discountLabel, TARGET_LABEL, MODE_LABEL } from '../store/promos'
 import { usd, fmtDateTime } from '../utils/format'
+import { NOW } from '../data/catalog'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,7 +13,7 @@ const blank = () => ({
   id: null, code: '', name: '', label: '', desc: '',
   target: 'PLAN', mode: 'PERCENTAGE', value: '', currency: 'USD',
   scope: [], capMode: 'unlimited', cap: '',
-  startDate: '2026-05-05', startTime: '00:00', endDate: '', endTime: '23:59', tz: 'UTC'
+  startDate: '2026-10-08', startTime: '00:00', endDate: '', endTime: '23:59', tz: 'UTC'
 })
 
 // Continue a saved draft when opened with ?draft=<id>
@@ -111,7 +112,7 @@ const preview = computed(() => {
   return { item, eligible, discount, final: item.price - discount, capped }
 })
 const badge = computed(() => discountLabel(form))
-const scheduled = computed(() => startAt.value > '2026-05-04T12:00')
+const scheduled = computed(() => startAt.value > NOW)
 
 const checks = computed(() => {
   const e1 = validate(1), e2 = validate(2)
@@ -166,19 +167,19 @@ const checks = computed(() => {
             <div class="bo-fields">
               <div>
                 <label class="bo-lbl" for="pc-code">Promo code <span class="req">*</span></label>
-                <input id="pc-code" class="bo-in bo-mono" :class="{ err: errors.code }" :value="form.code" placeholder="SUMMER26" autocomplete="off" @input="onCode" />
+                <input id="pc-code" class="bo-in bo-mono" :class="{ err: errors.code }" :value="form.code" placeholder="WINTER26" autocomplete="off" @input="onCode" />
                 <div v-if="errors.code" class="bo-err">{{ errors.code }}</div>
                 <div v-else class="bo-hint" style="margin-top: 4px">Uppercase letters, numbers and hyphens. Must be unique.</div>
               </div>
               <div>
                 <label class="bo-lbl" for="pc-name">Internal display name <span class="req">*</span></label>
-                <input id="pc-name" v-model="form.name" class="bo-in" :class="{ err: errors.name }" placeholder="Summer 2026 Campaign" />
+                <input id="pc-name" v-model="form.name" class="bo-in" :class="{ err: errors.name }" placeholder="Winter 2026 Campaign" />
                 <div v-if="errors.name" class="bo-err">{{ errors.name }}</div>
                 <div v-else class="bo-hint" style="margin-top: 4px">Only operators see this name.</div>
               </div>
               <div>
                 <label class="bo-lbl" for="pc-label">Customer-facing label <span class="req">*</span></label>
-                <input id="pc-label" v-model="form.label" class="bo-in" :class="{ err: errors.label }" placeholder="Summer Special – 20% Off" />
+                <input id="pc-label" v-model="form.label" class="bo-in" :class="{ err: errors.label }" placeholder="Winter Special – 20% Off" />
                 <div v-if="errors.label" class="bo-err">{{ errors.label }}</div>
                 <div v-else class="bo-hint" style="margin-top: 4px">Shown at checkout and on the invoice.</div>
               </div>
