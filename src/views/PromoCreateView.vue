@@ -125,6 +125,17 @@ const preview = computed(() => {
   return { item, eligible, discount, final: item.price - discount, capped }
 })
 const badge = computed(() => discountLabel(form))
+
+// Selected items whose catalogue price is at or below the fixed amount: the discount is capped there and the
+// customer pays $0. This warns but never blocks — the real subtotal depends on quantity and billing interval.
+const cappedItems = computed(() => {
+  const amount = Math.round((Number(form.value) || 0) * 100)
+  if (form.mode !== 'FIXED_AMOUNT' || amount <= 0) return []
+  return items.value.filter(i => form.scope.includes(i.id) && amount >= i.price)
+})
+const isCapped = id => cappedItems.value.some(i => i.id === id)
+const allCapped = computed(() => cappedItems.value.length > 0 && cappedItems.value.length === form.scope.length)
+const useFullDiscount = () => { setMode('FULL_DISCOUNT'); errors.value = {} }
 const scheduled = computed(() => startAt.value > NOW)
 
 const checks = computed(() => {
@@ -132,6 +143,9 @@ const checks = computed(() => {
   return [
     { ok: !e1.code, title: 'Promo code is unique', sub: e1.code || `${form.code} is available and not in use.` },
     { ok: !e1.value, title: 'Discount value is valid', sub: e1.value || `${MODE_LABEL[form.mode]} · ${badge.value}. Never exceeds the eligible subtotal.` },
+    ...(cappedItems.value.length
+      ? [{ ok: true, warn: true, title: 'Fixed amount exceeds some prices', sub: `Capped, customer pays $0.00 on: ${cappedItems.value.map(i => `${i.id} (${usd(i.price)})`).join(', ')}.` }]
+      : []),
     { ok: !e2.scope, title: 'Eligible scope is configured', sub: e2.scope || `${form.scope.length} ${scopeNoun.value}${form.scope.length === 1 ? '' : 's'} selected from the catalogue.` },
     { ok: !e2.start && !e2.end, title: 'Validity dates are correct', sub: e2.start || e2.end || 'Start is before end.' },
     { ok: true, title: 'No stacking', sub: 'Only one promo code can apply to a single invoice.' },
@@ -304,9 +318,22 @@ const checks = computed(() => {
               </div>
             </div>
             <div class="bo-rowflex" role="group" :aria-label="`Eligible ${scopeNoun}s`">
-              <button v-for="i in items" :key="i.id" class="bo-chip" :class="{ on: form.scope.includes(i.id) }" :aria-pressed="form.scope.includes(i.id)" @click="toggleScope(i.id)">
-                {{ form.scope.includes(i.id) ? '✓' : '+' }} {{ i.id }} <span class="bo-hint">{{ usd(i.price) }}/mo</span>
+              <button v-for="i in items" :key="i.id" class="bo-chip" :class="{ on: form.scope.includes(i.id), warn: isCapped(i.id) }" :aria-pressed="form.scope.includes(i.id)" @click="toggleScope(i.id)">
+                {{ isCapped(i.id) ? '!' : form.scope.includes(i.id) ? '✓' : '+' }} {{ i.id }} <span class="bo-hint">{{ usd(i.price) }}/mo</span>
               </button>
+            </div>
+            <div v-if="cappedItems.length" class="bo-banner warn note" role="status" style="font-size: 13px">
+              <div style="flex: 1 1 320px">
+                <strong>The {{ usd(Math.round(form.value * 100)) }} fixed discount is larger than {{ cappedItems.length === 1 ? 'this price' : 'these prices' }}.</strong>
+                <ul style="margin: 6px 0 0; padding-left: 18px">
+                  <li v-for="i in cappedItems" :key="i.id">{{ i.id }} ({{ usd(i.price) }}): discount is capped at {{ usd(i.price) }} and the customer pays $0.00.</li>
+                </ul>
+                <div style="margin-top: 6px">You can still create the code. The cap is applied on the actual invoice line, so larger quantities or billing periods may use the full amount.</div>
+              </div>
+              <div class="bo-rowflex">
+                <button class="bo-btn sm" @click="goTo(1)">Change amount</button>
+                <button v-if="allCapped" class="bo-btn sm" @click="useFullDiscount">Use Full discount instead</button>
+              </div>
             </div>
             <div v-if="errors.scope" class="bo-err">{{ errors.scope }}</div>
             <div v-else class="bo-hint">Scope is required. A promo with no selected {{ scopeNoun }} cannot be created.</div>
@@ -410,8 +437,8 @@ const checks = computed(() => {
           <section class="bo-card bo-pad bo-stack">
             <div class="bo-sechead"><div class="bo-secnum">4</div><div><h2 class="bo-h2">Pre-flight checks</h2><div class="bo-hint">Re-run on the server when you create the code.</div></div></div>
             <div class="bo-fields" style="gap: 10px">
-              <div v-for="c in checks" :key="c.title" class="bo-check" :class="{ fail: !c.ok }">
-                <span class="bo-check-mark">{{ c.ok ? '✓' : '!' }}</span>
+              <div v-for="c in checks" :key="c.title" class="bo-check" :class="{ fail: !c.ok, warn: c.warn }">
+                <span class="bo-check-mark">{{ c.ok && !c.warn ? '✓' : '!' }}</span>
                 <div><div style="font-weight: 600">{{ c.title }}</div><div class="bo-hint">{{ c.sub }}</div></div>
               </div>
             </div>
