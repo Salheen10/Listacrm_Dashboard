@@ -67,7 +67,7 @@ const clearFilters = () => { query.value = ''; status.value = 'all'; target.valu
       <button class="bo-btn sm" @click="store.clearFlash()">Dismiss</button>
     </div>
 
-    <section class="bo-grid-mini" style="grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr))">
+    <section class="bo-grid-stats">
       <div v-for="s in stats" :key="s.label" class="bo-card" style="padding: 14px 16px">
         <div class="bo-kpi-label">{{ s.label }}</div>
         <div class="bo-kpi-value">{{ s.value }}</div>

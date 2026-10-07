@@ -128,15 +128,11 @@ export function buildOverview({ plan, type, period }, promoSyncFailures = []) {
   const newWs = Math.round(sum(r => r.newWs) * f), lostWs = Math.round(sum(r => r.lostWs) * f)
   const invoices = Math.round(sum(r => r.inv) * f), collected = gross * 0.94
   const paidTenants = f < 1 ? Math.round(T * 0.3) : Math.round(T * 0.96 + (f > 1 ? lost * f : 0))
-  const miniBars = (cur, prev, seed) => {
-    const v = series(cur, prev, seed).slice(-6), mx = Math.max(...v, 1)
-    return v.map(x => Math.max(18, Math.round(x / mx * 100)))
-  }
-  const mini = (label, cur, prev, value, inverse, sub) => ({ label, value, delta: pctDelta(cur, prev, inverse), sub, bars: miniBars(cur, prev, label.length) })
+  const mini = (label, cur, prev, value, inverse, sub) => ({ label, value, delta: pctDelta(cur, prev, inverse), sub })
   const minis = [
     mini('New workspaces', newWs, Math.round(newWs / 1.12), String(newWs), false, vs(Math.round(newWs / 1.12))),
     mini('Lost workspaces', lostWs, Math.round(lostWs * 1.22), String(lostWs), true, vs(Math.round(lostWs * 1.22))),
-    { label: 'Total workspaces', value: sum(r => r.totalWs).toLocaleString('en-US'), delta: { text: '—', tone: FLAT }, sub: `+${newWs} in this period`, bars: miniBars(sum(r => r.totalWs), sum(r => r.totalWs) - newWs * 6, 3) },
+    { label: 'Total workspaces', value: sum(r => r.totalWs).toLocaleString('en-US'), delta: { text: '', tone: FLAT }, sub: `+${newWs} in this period` },
     mini('Invoices', invoices, Math.round(invoices / 1.06), String(invoices), false, vs(Math.round(invoices / 1.06))),
     mini('Collected', collected, collected / 1.084, money(collected), false, vs(money(collected / 1.084))),
     mini('Paid tenants', paidTenants, Math.round(paidTenants / 1.037), String(paidTenants), false, vs(Math.round(paidTenants / 1.037)))

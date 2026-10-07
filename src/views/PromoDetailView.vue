@@ -87,7 +87,7 @@ const deactivate = () => {
 
     <div class="bo-split">
       <div class="main">
-        <section class="bo-grid-mini">
+        <section class="bo-grid-stats">
           <div class="bo-card" style="padding: 14px 16px">
             <div class="bo-kpi-label">Successful uses</div>
             <div class="bo-kpi-value">{{ totals.uses }}</div>
