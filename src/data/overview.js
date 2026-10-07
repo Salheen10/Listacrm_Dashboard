@@ -170,13 +170,19 @@ const MIX_NOTE = {
 
 export function buildMix(rows, mode, by) {
   const raw = rows.map(r => ({
-    name: r.plan.id, color: r.plan.color, base: r.t,
+    name: r.plan.id, color: r.plan.color, base: r.t, baseMrr: r.mrr,
     tenants: mode === 'all' ? r.t : mode === 'without' ? r.wo : r.wa,
     mrr: mode === 'all' ? r.mrr : mode === 'with' ? r.withMrr : mode === 'without' ? r.woMrr : r.addMrr
   }))
-  const tenants = raw.reduce((x, r) => x + r.tenants, 0), mrr = raw.reduce((x, r) => x + r.mrr, 0), allTenants = rows.reduce((x, r) => x + r.t, 0)
+  const tenants = raw.reduce((x, r) => x + r.tenants, 0), mrr = raw.reduce((x, r) => x + r.mrr, 0), allTenants = rows.reduce((x, r) => x + r.t, 0), allMrr = rows.reduce((x, r) => x + r.mrr, 0)
   const basis = by === 'tenants' ? tenants : mrr
   const share = (a, b) => (b ? (a / b * 100).toFixed(1) + '%' : '—')
+  // The share column follows the chart basis: tenants or MRR. In the Total view it is the plan's share of the
+  // whole; in the other views it is the share of that plan's own tenants or MRR.
+  const byMrr = by === 'mrr'
+  const pctOf = r => (mode === 'all'
+    ? (byMrr ? share(r.mrr, mrr) : share(r.tenants, tenants))
+    : (byMrr ? share(r.mrr, r.baseMrr) : share(r.tenants, r.base)))
   let acc = 0
   const stops = []
   raw.forEach(r => {
@@ -184,11 +190,11 @@ export function buildMix(rows, mode, by) {
     if (basis && v) { stops.push(`${r.color} ${(acc / basis * 100).toFixed(2)}% ${((acc + v) / basis * 100).toFixed(2)}%`); acc += v }
   })
   return {
-    rows: raw.map(r => ({ name: r.name, color: r.color, tenants: r.tenants, pct: mode === 'all' ? share(r.tenants, tenants) : share(r.tenants, r.base), mrr: money(r.mrr) })),
-    total: { tenants, pct: mode === 'all' ? (tenants ? '100%' : '—') : share(tenants, allTenants), mrr: money(mrr) },
+    rows: raw.map(r => ({ name: r.name, color: r.color, tenants: r.tenants, pct: pctOf(r), mrr: money(r.mrr) })),
+    total: { tenants, pct: mode === 'all' ? (basis ? '100%' : '—') : (byMrr ? share(mrr, allMrr) : share(tenants, allTenants)), mrr: money(mrr) },
     donut: stops.length ? `conic-gradient(${stops.join(', ')})` : '#e9edf4',
     center: by === 'tenants' ? tenants.toLocaleString('en-US') : money(mrr), centerLabel: by === 'tenants' ? 'tenants' : 'MRR',
-    pctHead: mode === 'all' ? '% of total' : '% of plan', mrrHead: mode === 'addons' ? 'Add-on MRR' : 'MRR',
+    pctHead: mode === 'all' ? (byMrr ? '% of MRR' : '% of tenants') : (byMrr ? '% of plan MRR' : '% of plan tenants'), mrrHead: mode === 'addons' ? 'Add-on MRR' : 'MRR',
     summary: `${tenants.toLocaleString('en-US')} tenants · ${money(mrr)}${mode === 'addons' ? ' add-on MRR' : ' MRR'}`, note: MIX_NOTE[mode]
   }
 }
