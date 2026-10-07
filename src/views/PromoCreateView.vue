@@ -31,7 +31,6 @@ const STEPS = [
 ]
 const TARGETS = [['PLAN', 'Plan'], ['ADD_ON', 'Add-on'], ['RENEWAL', 'Renewal']]
 const MODES = [['PERCENTAGE', 'Percentage'], ['FIXED_AMOUNT', 'Fixed amount'], ['FULL_DISCOUNT', 'Full discount']]
-const TIMEZONES = ['UTC', 'America/New_York', 'America/Chicago', 'America/Los_Angeles']
 
 const items = computed(() => scopeItems(form.target))
 const scopeNoun = computed(() => (form.target === 'ADD_ON' ? 'add-on' : 'plan'))
@@ -320,7 +319,7 @@ const checks = computed(() => {
           <section class="bo-card bo-pad bo-stack">
             <div class="bo-sechead">
               <div class="bo-secnum">3</div>
-              <div><h2 class="bo-h2">Validity window</h2><div class="bo-hint">When the code becomes active and when it expires. Checked by exact timestamp.</div></div>
+              <div><h2 class="bo-h2">Validity window</h2><div class="bo-hint">When the code becomes active and when it expires. All times are UTC.</div></div>
             </div>
             <div class="bo-fields">
               <div>
@@ -340,12 +339,6 @@ const checks = computed(() => {
                 </div>
                 <div v-if="errors.end" class="bo-err">{{ errors.end }}</div>
                 <div v-else class="bo-hint" style="margin-top: 4px">The code expires automatically at this time.</div>
-              </div>
-              <div>
-                <label class="bo-lbl" for="pc-tz">Timezone</label>
-                <select id="pc-tz" v-model="form.tz" class="bo-in">
-                  <option v-for="t in TIMEZONES" :key="t">{{ t }}</option>
-                </select>
               </div>
             </div>
             <div v-if="form.target === 'RENEWAL'" class="bo-banner warn note" style="font-size: 13px">
@@ -388,7 +381,6 @@ const checks = computed(() => {
             </div>
             <div class="bo-kv"><div>Starts</div><div>{{ fmtDateTime(startAt) }}</div></div>
             <div class="bo-kv"><div>Ends</div><div>{{ fmtDateTime(endAt) }}</div></div>
-            <div class="bo-kv"><div>Timezone</div><div>{{ form.tz }}</div></div>
             <div class="bo-kv"><div>Per workspace</div><div>One successful use</div></div>
             <div class="bo-kv"><div>Total cap</div><div>{{ form.capMode === 'cap' ? Number(form.cap).toLocaleString('en-US') + ' redemptions' : 'Unlimited' }}</div></div>
             <div class="bo-kv"><div>Status after creation</div><div><span class="bo-pill" :class="scheduled ? 'info' : 'ok'">{{ scheduled ? 'Scheduled' : 'Active' }}</span></div></div>
@@ -445,7 +437,6 @@ const checks = computed(() => {
             <div class="bo-kv"><div>Total cap</div><div>{{ form.capMode === 'cap' && form.cap ? form.cap : 'Unlimited' }}</div></div>
             <div class="bo-kv"><div>Starts</div><div>{{ startAt ? fmtDateTime(startAt) : '—' }}</div></div>
             <div class="bo-kv"><div>Ends</div><div>{{ endAt ? fmtDateTime(endAt) : '—' }}</div></div>
-            <div class="bo-kv"><div>Timezone</div><div>{{ form.tz }}</div></div>
           </div>
 
           <div>
