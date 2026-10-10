@@ -48,7 +48,26 @@ export const totalsOf = p => {
   return { uses: p.reds.length, original, discount, final: original - discount }
 }
 
-const red = (ws, wsId, inv, item, at, kind = 'Plan purchase') => ({ ws, wsId, inv, item, orig: itemPrice(item), at, kind })
+// Workspace plan and the billing admin who redeemed, by workspace id (mock directory).
+const WORKSPACES = {
+  'WS-10008': ['Solo', 'Nour Fathy', 'nour.fathy@lighthouse-realty.example'],
+  'WS-10009': ['Solo', 'Amr Samir', 'amr.samir@cedar-homes.example'],
+  'WS-10011': ['Solo', 'Rana Hany', 'rana.hany@sahara-estates.example'],
+  'WS-10012': ['Solo', 'Hany Lotfy', 'hany.lotfy@coralbay-realty.example'],
+  'WS-20001': ['Growth', 'Omar Farouk', 'omar.farouk@greenvalley-homes.example'],
+  'WS-20002': ['Growth', 'Sara Mansour', 'sara.mansour@elite-hometeam.example'],
+  'WS-20003': ['Growth', 'Mona Adel', 'mona.adel@trust-brokers.example'],
+  'WS-20009': ['Growth', 'Tarek Salem', 'tarek.salem@capital-brokers.example'],
+  'WS-20013': ['Growth', 'Youssef Karim', 'youssef.karim@amber-properties.example'],
+  'WS-20014': ['Growth', 'Heba Mostafa', 'heba.mostafa@silverkey-homes.example'],
+  'WS-30003': ['Brokerage', 'Khaled Nabil', 'khaled.nabil@summit-brokers.example'],
+  'WS-30007': ['Brokerage', 'Dina Aziz', 'dina.aziz@crown-realty.example'],
+  'WS-30009': ['Brokerage', 'Salma Reda', 'salma.reda@vista-properties.example']
+}
+const red = (ws, wsId, inv, item, at, kind = 'Plan purchase') => {
+  const [plan, admin, adminEmail] = WORKSPACES[wsId] || []
+  return { ws, wsId, plan, admin, adminEmail, inv, item, orig: itemPrice(item), at, kind }
+}
 const log = (at, what, who = ACTOR) => ({ at, who, what })
 
 const seed = () => [

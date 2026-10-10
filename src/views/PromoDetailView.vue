@@ -1,9 +1,9 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePromoStore, statusOf, discountOf, discountLabel, totalsOf, TARGET_LABEL, MODE_LABEL, APPLIES_TO } from '../store/promos'
 import { usd, fmtDate, fmtDateTime } from '../utils/format'
-import { NOW } from '../data/catalog'
+import { NOW, PLANS } from '../data/catalog'
 
 const route = useRoute()
 const store = usePromoStore()
@@ -20,6 +20,29 @@ const redemptions = computed(() =>
     return { ...r, discount: d, final: r.orig - d }
   })
 )
+// ---- redemption search and filters (table only; the tiles above always cover the whole promo) ----
+const query = ref('')
+const planFilter = ref('all')
+const dateFrom = ref('')
+const dateTo = ref('')
+const rangeError = computed(() => !!dateFrom.value && !!dateTo.value && dateTo.value < dateFrom.value)
+const hasFilters = computed(() => !!(query.value.trim() || planFilter.value !== 'all' || dateFrom.value || dateTo.value))
+const filtered = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  return redemptions.value.filter(r => {
+    const day = r.at.slice(0, 10) // redemption date in UTC
+    return (!q || [r.ws, r.wsId, r.admin, r.adminEmail].some(v => (v || '').toLowerCase().includes(q))) &&
+      (planFilter.value === 'all' || r.plan === planFilter.value) &&
+      (!dateFrom.value || day >= dateFrom.value) &&
+      (!dateTo.value || day <= dateTo.value)
+  })
+})
+const filteredTotals = computed(() =>
+  filtered.value.reduce((t, r) => ({ original: t.original + r.orig, discount: t.discount + r.discount, final: t.final + r.final }), { original: 0, discount: 0, final: 0 })
+)
+const clearFilters = () => { query.value = ''; planFilter.value = 'all'; dateFrom.value = ''; dateTo.value = '' }
+watch(() => route.params.id, clearFilters)
+
 const fmtTime = iso => fmtDateTime(iso).split(', ').pop()
 const audit = computed(() => [...promo.value.audit].reverse())
 const canDeactivate = computed(() => ['Active', 'Scheduled'].includes(status.value))
@@ -109,45 +132,78 @@ const deactivate = () => {
       </div>
     </section>
 
-    <div class="bo-split">
-      <div class="bo-col-main">
-
-        <section class="bo-card">
-          <div class="bo-pad" style="padding-bottom: 8px">
+    <section class="bo-card">
+      <div class="bo-pad" style="padding-bottom: 12px">
+        <div class="bo-between" style="align-items: flex-end">
+          <div>
             <h2 class="bo-h2">Redemptions</h2>
             <div class="bo-hint">Amounts match the finalized invoice snapshot for each workspace.</div>
           </div>
-          <div v-if="redemptions.length" class="bo-tablewrap">
-            <table class="bo-table roomy" style="min-width: 640px">
-              <thead>
-                <tr>
-                  <th>Workspace</th><th>Purchase</th><th class="bo-num">Original</th><th class="bo-num">Discount</th><th class="bo-num">Final</th><th>Redeemed</th><th>Billing</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="r in redemptions" :key="r.inv">
-                  <td class="nowrap"><div style="font-weight: 600">{{ r.ws }}</div><div class="bo-hint">{{ r.wsId }}</div></td>
-                  <td class="nowrap"><div>{{ r.item }} {{ r.kind.startsWith('Add-on') ? 'add-on' : 'plan' }}</div><div class="bo-hint">{{ r.inv }}</div></td>
-                  <td class="bo-num nowrap">{{ usd(r.orig) }}</td>
-                  <td class="bo-num nowrap" style="color: var(--bo-good); font-weight: 600">−{{ usd(r.discount) }}</td>
-                  <td class="bo-num nowrap" style="font-weight: 600">{{ usd(r.final) }}</td>
-                  <td class="nowrap"><div>{{ fmtDate(r.at) }}</div><div class="bo-hint">{{ fmtTime(r.at) }} UTC</div></td>
-                  <td><span class="bo-pill ok">Paid</span></td>
-                </tr>
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td colspan="2">Total · {{ totals.uses }} redemptions</td>
-                  <td class="bo-num">{{ usd(totals.original) }}</td>
-                  <td class="bo-num">−{{ usd(totals.discount) }}</td>
-                  <td class="bo-num">{{ usd(totals.final) }}</td>
-                  <td colspan="2"></td>
-                </tr>
-              </tfoot>
-            </table>
+          <div v-if="redemptions.length" class="bo-hint" role="status">Showing {{ filtered.length }} of {{ redemptions.length }} redemptions</div>
+        </div>
+        <div v-if="redemptions.length" class="bo-rowflex" style="margin-top: 14px; align-items: flex-end">
+          <div style="flex: 1 1 280px">
+            <label class="bo-flabel" for="rd-q">Search</label>
+            <input id="rd-q" v-model="query" class="bo-in" type="search" placeholder="Workspace, workspace ID, admin name or email" />
           </div>
-          <div v-else class="bo-empty">This promo code has not been successfully redeemed yet.</div>
-        </section>
+          <div style="flex: 0 1 170px">
+            <label class="bo-flabel" for="rd-plan">Plan</label>
+            <select id="rd-plan" v-model="planFilter" class="bo-in">
+              <option value="all">All plans</option>
+              <option v-for="p in PLANS" :key="p.id" :value="p.id">{{ p.id }}</option>
+            </select>
+          </div>
+          <div style="flex: 0 1 165px">
+            <label class="bo-flabel" for="rd-from">Redeemed from</label>
+            <input id="rd-from" v-model="dateFrom" class="bo-in" :class="{ err: rangeError }" type="date" :max="dateTo || undefined" />
+          </div>
+          <div style="flex: 0 1 165px">
+            <label class="bo-flabel" for="rd-to">Redeemed to</label>
+            <input id="rd-to" v-model="dateTo" class="bo-in" :class="{ err: rangeError }" type="date" :min="dateFrom || undefined" />
+          </div>
+          <button class="bo-btn" :disabled="!hasFilters" @click="clearFilters">Clear filters</button>
+        </div>
+        <div v-if="rangeError" class="bo-err">The "Redeemed to" date must be on or after the "Redeemed from" date.</div>
+        <div v-else-if="redemptions.length" class="bo-hint" style="margin-top: 6px">Dates are UTC. Filters apply to this table and its totals; the figures above always cover the whole promo code.</div>
+      </div>
+      <div v-if="filtered.length" class="bo-tablewrap">
+        <table class="bo-table roomy" style="min-width: 900px">
+          <thead>
+            <tr>
+              <th>Workspace</th><th>Redeemed by</th><th>Purchase</th><th class="bo-num">Original</th><th class="bo-num">Discount</th><th class="bo-num">Final</th><th>Redeemed</th><th>Billing</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in filtered" :key="r.inv">
+              <td class="nowrap"><div style="font-weight: 600">{{ r.ws }}</div><div class="bo-hint">{{ r.wsId }} · {{ r.plan }}</div></td>
+              <td class="nowrap"><div>{{ r.admin }}</div><div class="bo-hint">{{ r.adminEmail }}</div></td>
+              <td class="nowrap"><div>{{ r.item }} {{ r.kind.startsWith('Add-on') ? 'add-on' : 'plan' }}</div><div class="bo-hint">{{ r.inv }}</div></td>
+              <td class="bo-num nowrap">{{ usd(r.orig) }}</td>
+              <td class="bo-num nowrap" style="color: var(--bo-good); font-weight: 600">−{{ usd(r.discount) }}</td>
+              <td class="bo-num nowrap" style="font-weight: 600">{{ usd(r.final) }}</td>
+              <td class="nowrap"><div>{{ fmtDate(r.at) }}</div><div class="bo-hint">{{ fmtTime(r.at) }} UTC</div></td>
+              <td><span class="bo-pill ok">Paid</span></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3">Total · {{ filtered.length }}<template v-if="hasFilters"> of {{ redemptions.length }}</template> redemptions</td>
+              <td class="bo-num">{{ usd(filteredTotals.original) }}</td>
+              <td class="bo-num">−{{ usd(filteredTotals.discount) }}</td>
+              <td class="bo-num">{{ usd(filteredTotals.final) }}</td>
+              <td colspan="2"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div v-else-if="redemptions.length" class="bo-empty">
+        No redemptions match these filters. <button class="bo-link" @click="clearFilters">Clear filters</button>
+      </div>
+      <div v-else class="bo-empty">This promo code has not been successfully redeemed yet.</div>
+    </section>
+
+    <div class="bo-split">
+      <div class="bo-col-main">
 
         <section v-if="promo.failed.length" class="bo-card bo-pad">
           <h2 class="bo-h2">Failed and abandoned attempts</h2>
@@ -158,6 +214,15 @@ const deactivate = () => {
               <div class="bo-hint">{{ f.reason }}</div>
             </div>
             <div class="bo-hint" style="flex: none">{{ fmtDateTime(f.at) }}</div>
+          </div>
+        </section>
+        <section class="bo-card bo-pad">
+          <h2 class="bo-h2" style="margin-bottom: 4px">Audit trail</h2>
+          <div v-for="(a, i) in audit" :key="i" class="bo-item">
+            <div style="flex: 1; min-width: 0">
+              <div style="font-weight: 600">{{ a.what }}</div>
+              <div class="bo-hint">{{ a.who }} · {{ fmtDateTime(a.at) }}</div>
+            </div>
           </div>
         </section>
       </div>
@@ -189,16 +254,6 @@ const deactivate = () => {
           <div class="bo-kv"><div>Coupon ref</div><div class="bo-mono" style="font-weight: 500">{{ promo.stripe ? promo.stripe.coupon : '—' }}</div></div>
           <div class="bo-kv"><div>Promotion ref</div><div class="bo-mono" style="font-weight: 500">{{ promo.stripe ? promo.stripe.promotion : '—' }}</div></div>
           <div class="bo-hint" style="margin-top: 8px">References only. No Stripe keys or card data are stored on the promo record.</div>
-        </section>
-
-        <section class="bo-card bo-pad">
-          <h2 class="bo-h2" style="margin-bottom: 4px">Audit trail</h2>
-          <div v-for="(a, i) in audit" :key="i" class="bo-item">
-            <div style="flex: 1; min-width: 0">
-              <div style="font-weight: 600">{{ a.what }}</div>
-              <div class="bo-hint">{{ a.who }} · {{ fmtDateTime(a.at) }}</div>
-            </div>
-          </div>
         </section>
       </aside>
     </div>
