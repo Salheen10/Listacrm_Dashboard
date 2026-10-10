@@ -187,7 +187,7 @@ const checks = computed(() => {
     </nav>
 
     <div class="bo-split">
-      <div class="main">
+      <div class="bo-col-main">
         <!-- STEP 1 -->
         <template v-if="step === 1">
           <section class="bo-card bo-pad bo-stack">
@@ -463,7 +463,7 @@ const checks = computed(() => {
       </div>
 
       <!-- SUMMARY -->
-      <aside class="side">
+      <aside class="bo-col-side">
         <div v-if="step === 3" class="bo-banner note" style="font-size: 13px">
           <div>This discount only applies to subscription charges. It does not affect CRM activation, IDX access or MLS requirements.</div>
         </div>

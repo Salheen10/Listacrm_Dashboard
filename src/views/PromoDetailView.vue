@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePromoStore, statusOf, discountOf, discountLabel, totalsOf, TARGET_LABEL, MODE_LABEL, APPLIES_TO } from '../store/promos'
-import { usd, fmtDateTime } from '../utils/format'
+import { usd, fmtDate, fmtDateTime } from '../utils/format'
 import { NOW } from '../data/catalog'
 
 const route = useRoute()
@@ -20,6 +20,7 @@ const redemptions = computed(() =>
     return { ...r, discount: d, final: r.orig - d }
   })
 )
+const fmtTime = iso => fmtDateTime(iso).split(', ').pop()
 const audit = computed(() => [...promo.value.audit].reverse())
 const canDeactivate = computed(() => ['Active', 'Scheduled'].includes(status.value))
 const canReactivate = computed(() => status.value === 'Inactive' && NOW >= promo.value.start && NOW <= promo.value.end)
@@ -85,30 +86,31 @@ const deactivate = () => {
       </div>
     </div>
 
+    <section class="bo-grid-stats">
+      <div class="bo-card bo-stat">
+        <div class="bo-kpi-label">Successful uses</div>
+        <div class="bo-kpi-value">{{ totals.uses }}</div>
+        <div class="bo-hint">{{ promo.cap ? `of ${promo.cap} total cap` : 'No total cap' }}</div>
+      </div>
+      <div class="bo-card bo-stat">
+        <div class="bo-kpi-label">Total discount</div>
+        <div class="bo-kpi-value">{{ usd(totals.discount) }}</div>
+        <div class="bo-hint">USD · finalized invoices</div>
+      </div>
+      <div class="bo-card bo-stat">
+        <div class="bo-kpi-label">Billed after discount</div>
+        <div class="bo-kpi-value">{{ usd(totals.final) }}</div>
+        <div class="bo-hint">From {{ usd(totals.original) }} original</div>
+      </div>
+      <div class="bo-card bo-stat">
+        <div class="bo-kpi-label">Failed attempts</div>
+        <div class="bo-kpi-value">{{ promo.failed.length }}</div>
+        <div class="bo-hint">Not counted as usage</div>
+      </div>
+    </section>
+
     <div class="bo-split">
-      <div class="main">
-        <section class="bo-grid-stats">
-          <div class="bo-card" style="padding: 14px 16px">
-            <div class="bo-kpi-label">Successful uses</div>
-            <div class="bo-kpi-value">{{ totals.uses }}</div>
-            <div class="bo-hint">{{ promo.cap ? `of ${promo.cap} total cap` : 'No total cap' }}</div>
-          </div>
-          <div class="bo-card" style="padding: 14px 16px">
-            <div class="bo-kpi-label">Total discount</div>
-            <div class="bo-kpi-value">{{ usd(totals.discount) }}</div>
-            <div class="bo-hint">USD · finalized invoices</div>
-          </div>
-          <div class="bo-card" style="padding: 14px 16px">
-            <div class="bo-kpi-label">Billed after discount</div>
-            <div class="bo-kpi-value">{{ usd(totals.final) }}</div>
-            <div class="bo-hint">From {{ usd(totals.original) }} original</div>
-          </div>
-          <div class="bo-card" style="padding: 14px 16px">
-            <div class="bo-kpi-label">Failed attempts</div>
-            <div class="bo-kpi-value">{{ promo.failed.length }}</div>
-            <div class="bo-hint">Not counted as usage</div>
-          </div>
-        </section>
+      <div class="bo-col-main">
 
         <section class="bo-card">
           <div class="bo-pad" style="padding-bottom: 8px">
@@ -116,27 +118,26 @@ const deactivate = () => {
             <div class="bo-hint">Amounts match the finalized invoice snapshot for each workspace.</div>
           </div>
           <div v-if="redemptions.length" class="bo-tablewrap">
-            <table class="bo-table" style="min-width: 760px">
+            <table class="bo-table roomy" style="min-width: 640px">
               <thead>
                 <tr>
-                  <th>Workspace</th><th>Invoice</th><th>Type</th><th class="bo-num">Original</th><th class="bo-num">Discount</th><th class="bo-num">Final</th><th>Redeemed</th><th>Billing</th>
+                  <th>Workspace</th><th>Purchase</th><th class="bo-num">Original</th><th class="bo-num">Discount</th><th class="bo-num">Final</th><th>Redeemed</th><th>Billing</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="r in redemptions" :key="r.inv">
-                  <td><div style="font-weight: 600">{{ r.ws }}</div><div class="bo-hint">{{ r.wsId }}</div></td>
-                  <td>{{ r.inv }}</td>
-                  <td>{{ r.kind }} · {{ r.item }}</td>
-                  <td class="bo-num">{{ usd(r.orig) }}</td>
-                  <td class="bo-num" style="color: var(--bo-good); font-weight: 600">−{{ usd(r.discount) }}</td>
-                  <td class="bo-num" style="font-weight: 600">{{ usd(r.final) }}</td>
-                  <td>{{ fmtDateTime(r.at) }}</td>
+                  <td class="nowrap"><div style="font-weight: 600">{{ r.ws }}</div><div class="bo-hint">{{ r.wsId }}</div></td>
+                  <td class="nowrap"><div>{{ r.item }} {{ r.kind.startsWith('Add-on') ? 'add-on' : 'plan' }}</div><div class="bo-hint">{{ r.inv }}</div></td>
+                  <td class="bo-num nowrap">{{ usd(r.orig) }}</td>
+                  <td class="bo-num nowrap" style="color: var(--bo-good); font-weight: 600">−{{ usd(r.discount) }}</td>
+                  <td class="bo-num nowrap" style="font-weight: 600">{{ usd(r.final) }}</td>
+                  <td class="nowrap"><div>{{ fmtDate(r.at) }}</div><div class="bo-hint">{{ fmtTime(r.at) }} UTC</div></td>
                   <td><span class="bo-pill ok">Paid</span></td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
-                  <td colspan="3">Total · {{ totals.uses }} redemptions</td>
+                  <td colspan="2">Total · {{ totals.uses }} redemptions</td>
                   <td class="bo-num">{{ usd(totals.original) }}</td>
                   <td class="bo-num">−{{ usd(totals.discount) }}</td>
                   <td class="bo-num">{{ usd(totals.final) }}</td>
@@ -161,7 +162,7 @@ const deactivate = () => {
         </section>
       </div>
 
-      <aside class="side">
+      <aside class="bo-col-side">
         <section class="bo-card bo-pad">
           <h2 class="bo-h2" style="margin-bottom: 8px">Configuration</h2>
           <div class="bo-kv"><div>Target type</div><div>{{ TARGET_LABEL[promo.target] }}</div></div>
