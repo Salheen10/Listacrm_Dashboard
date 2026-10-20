@@ -3,11 +3,12 @@
 
 export const NOW = '2026-10-07T12:00'
 
+// price = monthly list price; annualPrice = yearly list price (mock: 10 × monthly).
 export const PLANS = [
-  { id: 'Solo', price: 79, freeSeats: 1, color: '#f0a23a' },
-  { id: 'Growth', price: 179, freeSeats: 3, color: '#1a66f0' },
-  { id: 'Brokerage', price: 399, freeSeats: 5, color: '#17a08c' },
-  { id: 'Enterprise', price: 1200, freeSeats: 20, color: '#3d2a9e' }
+  { id: 'Solo', price: 79, annualPrice: 790, freeSeats: 1, color: '#f0a23a' },
+  { id: 'Growth', price: 179, annualPrice: 1790, freeSeats: 3, color: '#1a66f0' },
+  { id: 'Brokerage', price: 399, annualPrice: 3990, freeSeats: 5, color: '#17a08c' },
+  { id: 'Enterprise', price: 1200, annualPrice: 12000, freeSeats: 20, color: '#3d2a9e' }
 ]
 
 const ALL_PLANS = PLANS.map(p => p.id)

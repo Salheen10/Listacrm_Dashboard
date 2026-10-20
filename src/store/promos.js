@@ -6,7 +6,7 @@ const ACTOR = 'mina magdy'
 
 // Catalogue items a promo of this target type can be scoped to (prices in cents).
 export const scopeItems = target =>
-  (target === 'ADD_ON' ? ADDONS : PLANS).map(i => ({ id: i.id, price: i.price * 100 }))
+  (target === 'ADD_ON' ? ADDONS : PLANS).map(i => ({ id: i.id, price: i.price * 100, annual: i.annualPrice ? i.annualPrice * 100 : null }))
 
 export const itemPrice = id => ((planById(id) || addonById(id) || { price: 0 }).price) * 100
 
@@ -17,6 +17,8 @@ export const APPLIES_TO = {
   ADD_ON: 'Selected add-on line only',
   RENEWAL: 'Total renewal invoice: plan + add-ons + extra seats'
 }
+// Which plan billing intervals a Plan or Renewal promo applies to. Add-on promos have no interval.
+export const INTERVAL_LABEL = { MONTHLY: 'Monthly only', ANNUAL: 'Annual only', BOTH: 'Monthly and annual' }
 export const MODE_LABEL = { PERCENTAGE: 'Percentage', FIXED_AMOUNT: 'Fixed amount', FULL_DISCOUNT: 'Full discount' }
 
 // Status is derived from draft flag, provider sync, manual deactivation and the validity window.
@@ -74,7 +76,7 @@ const seed = () => [
   {
     id: 'promo-autumn26', code: 'AUTUMN26', name: 'Autumn 2026 Campaign', label: 'Autumn Special – 20% Off',
     desc: 'Seasonal promotion for new workspaces. 20% off the first invoice.',
-    target: 'PLAN', mode: 'PERCENTAGE', value: 20, currency: 'USD', scope: ['Growth', 'Brokerage'], cap: null,
+    target: 'PLAN', mode: 'PERCENTAGE', value: 20, currency: 'USD', scope: ['Growth', 'Brokerage'], interval: 'BOTH', cap: null,
     start: '2026-09-01T00:00', end: '2026-11-30T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
     stripe: { coupon: 'co_autumn26', promotion: 'promo_autumn26' }, createdBy: ACTOR, createdAt: '2026-08-25T10:12',
     reds: [
@@ -93,7 +95,7 @@ const seed = () => [
   {
     id: 'promo-idxlaunch', code: 'IDXLAUNCH', name: 'IDX Core launch offer', label: '$50 off IDX Core',
     desc: 'Launch incentive for the first IDX Core invoice.',
-    target: 'ADD_ON', mode: 'FIXED_AMOUNT', value: 50, currency: 'USD', scope: ['IDX Core'], cap: 200,
+    target: 'ADD_ON', mode: 'FIXED_AMOUNT', value: 50, currency: 'USD', scope: ['IDX Core'], interval: null, cap: 200,
     start: '2026-08-01T00:00', end: '2026-10-31T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
     stripe: { coupon: 'co_idxlaunch', promotion: 'promo_idxlaunch' }, createdBy: ACTOR, createdAt: '2026-07-24T09:30',
     reds: [
@@ -107,7 +109,7 @@ const seed = () => [
   {
     id: 'promo-renew15', code: 'RENEW15', name: 'Winter renewal retention', label: '15% off your next renewal',
     desc: 'Retention offer applied at the next renewal charge.',
-    target: 'RENEWAL', mode: 'PERCENTAGE', value: 15, currency: 'USD', scope: ['Solo', 'Growth'], cap: null,
+    target: 'RENEWAL', mode: 'PERCENTAGE', value: 15, currency: 'USD', scope: ['Solo', 'Growth'], interval: 'BOTH', cap: null,
     start: '2026-11-01T00:00', end: '2027-01-31T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
     stripe: { coupon: 'co_renew15', promotion: 'promo_renew15' }, createdBy: ACTOR, createdAt: '2026-09-29T17:02',
     reds: [], failed: [],
@@ -116,7 +118,7 @@ const seed = () => [
   {
     id: 'promo-welcome100', code: 'WELCOME100', name: 'Solo launch — first month free', label: 'First month free',
     desc: 'Full discount on the first Solo invoice.',
-    target: 'PLAN', mode: 'FULL_DISCOUNT', value: 0, currency: 'USD', scope: ['Solo'], cap: null,
+    target: 'PLAN', mode: 'FULL_DISCOUNT', value: 0, currency: 'USD', scope: ['Solo'], interval: 'MONTHLY', cap: null,
     start: '2026-04-01T00:00', end: '2026-06-30T23:59', tz: 'UTC', manual: null, sync: 'Synced', draft: false,
     stripe: { coupon: 'co_welcome100', promotion: 'promo_welcome100' }, createdBy: ACTOR, createdAt: '2026-03-27T11:45',
     reds: [
@@ -131,7 +133,7 @@ const seed = () => [
   {
     id: 'promo-broker10', code: 'BROKER10', name: 'Brokerage partner referral', label: '10% off Brokerage',
     desc: 'Partner referral offer.',
-    target: 'PLAN', mode: 'PERCENTAGE', value: 10, currency: 'USD', scope: ['Brokerage'], cap: null,
+    target: 'PLAN', mode: 'PERCENTAGE', value: 10, currency: 'USD', scope: ['Brokerage'], interval: 'BOTH', cap: null,
     start: '2026-07-01T00:00', end: '2026-12-31T23:59', tz: 'UTC', manual: { at: '2026-09-12T15:30', by: ACTOR, reason: 'Campaign ended early' }, sync: 'Synced', draft: false,
     stripe: { coupon: 'co_broker10', promotion: 'promo_broker10' }, createdBy: ACTOR, createdAt: '2026-06-28T08:20',
     reds: [red('Vista Properties', 'WS-30009', 'INV-26-0199', 'Brokerage', '2026-07-26T14:14')],
@@ -141,7 +143,7 @@ const seed = () => [
   {
     id: 'promo-seats20', code: 'SEATS20', name: 'Extra seats expansion push', label: '$20 off extra seats',
     desc: 'Expansion incentive for growing teams.',
-    target: 'ADD_ON', mode: 'FIXED_AMOUNT', value: 20, currency: 'USD', scope: ['Extra Seat'], cap: null,
+    target: 'ADD_ON', mode: 'FIXED_AMOUNT', value: 20, currency: 'USD', scope: ['Extra Seat'], interval: null, cap: null,
     start: '2026-10-01T00:00', end: '2026-12-31T23:59', tz: 'UTC', manual: null, sync: 'Failed', draft: false,
     stripe: null, createdBy: ACTOR, createdAt: '2026-10-03T16:05',
     reds: [], failed: [],
@@ -170,7 +172,7 @@ export const usePromoStore = defineStore('promos', {
         id: form.id || 'promo-' + form.code.toLowerCase() + '-' + Date.now().toString(36),
         code: form.code, name: form.name, label: form.label, desc: form.desc,
         target: form.target, mode: form.mode, value: form.mode === 'FULL_DISCOUNT' ? 0 : Number(form.value) || 0,
-        currency: form.currency, scope: [...form.scope], cap: form.capMode === 'cap' ? Number(form.cap) : null,
+        currency: form.currency, scope: [...form.scope], interval: form.target === 'ADD_ON' ? null : form.interval, cap: form.capMode === 'cap' ? Number(form.cap) : null,
         start: `${form.startDate}T${form.startTime}`, end: `${form.endDate}T${form.endTime}`, tz: form.tz,
         manual: null, reds: [], failed: [], createdBy: ACTOR, createdAt: NOW,
         ...extra

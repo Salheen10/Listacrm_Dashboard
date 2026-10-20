@@ -1,7 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { usePromoStore, statusOf, discountOf, discountLabel, totalsOf, TARGET_LABEL, MODE_LABEL, APPLIES_TO } from '../store/promos'
+import { usePromoStore, statusOf, discountOf, discountLabel, totalsOf, TARGET_LABEL, MODE_LABEL, APPLIES_TO, INTERVAL_LABEL } from '../store/promos'
 import { usd, fmtDate, fmtDateTime } from '../utils/format'
 import { NOW, PLANS } from '../data/catalog'
 
@@ -232,6 +232,7 @@ const deactivate = () => {
           <h2 class="bo-h2" style="margin-bottom: 8px">Configuration</h2>
           <div class="bo-kv"><div>Target type</div><div>{{ TARGET_LABEL[promo.target] }}</div></div>
           <div class="bo-kv"><div>Applies to</div><div>{{ APPLIES_TO[promo.target] }}</div></div>
+          <div v-if="promo.interval" class="bo-kv"><div>Billing interval</div><div>{{ INTERVAL_LABEL[promo.interval] }}</div></div>
           <div class="bo-kv"><div>Discount</div><div>{{ MODE_LABEL[promo.mode] }} · {{ discountLabel(promo) }}</div></div>
           <div class="bo-kv"><div>Currency</div><div>{{ promo.currency }}</div></div>
           <div class="bo-kv">

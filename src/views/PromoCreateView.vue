@@ -1,7 +1,7 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { usePromoStore, scopeItems, itemPrice, discountOf, discountLabel, TARGET_LABEL, MODE_LABEL, APPLIES_TO } from '../store/promos'
+import { usePromoStore, scopeItems, itemPrice, discountOf, discountLabel, TARGET_LABEL, MODE_LABEL, APPLIES_TO, INTERVAL_LABEL } from '../store/promos'
 import { usd, fmtDateTime } from '../utils/format'
 import { NOW } from '../data/catalog'
 
@@ -12,13 +12,13 @@ const store = usePromoStore()
 const blank = () => ({
   id: null, code: '', name: '', label: '', desc: '',
   target: 'PLAN', mode: 'PERCENTAGE', value: '', currency: 'USD',
-  scope: [], capMode: 'unlimited', cap: '',
+  scope: [], interval: 'BOTH', capMode: 'unlimited', cap: '',
   startDate: '2026-10-08', startTime: '00:00', endDate: '', endTime: '23:59', tz: 'UTC'
 })
 
 // Continue a saved draft when opened with ?draft=<id>
 const draft = route.query.draft ? store.byId(route.query.draft) : null
-const form = reactive(draft && draft.form ? { ...draft.form, scope: [...draft.form.scope] } : blank())
+const form = reactive(draft && draft.form ? { ...blank(), ...draft.form, scope: [...draft.form.scope] } : blank())
 
 const step = ref(1)
 const errors = ref({})
@@ -34,6 +34,30 @@ const TARGETS = [['PLAN', 'Plan'], ['ADD_ON', 'Add-on'], ['RENEWAL', 'Renewal']]
 const MODES = [['PERCENTAGE', 'Percentage'], ['FIXED_AMOUNT', 'Fixed amount'], ['FULL_DISCOUNT', 'Full discount']]
 
 const items = computed(() => scopeItems(form.target))
+
+// ---- billing interval (Plan and Renewal targets only) ----
+const INTERVALS = [['MONTHLY', 'Monthly'], ['ANNUAL', 'Annual'], ['BOTH', 'Both']]
+const usesInterval = computed(() => form.target !== 'ADD_ON')
+const isAnnual = computed(() => usesInterval.value && form.interval === 'ANNUAL')
+// Price the promo is compared and previewed against: the yearly price for annual-only promos, otherwise monthly.
+const basePrice = i => (isAnnual.value && i.annual ? i.annual : i.price)
+const priceLabel = i => {
+  if (!usesInterval.value || !i.annual) return `${usd(i.price)}/mo`
+  if (form.interval === 'MONTHLY') return `${usd(i.price)}/mo`
+  if (form.interval === 'ANNUAL') return `${usd(i.annual)}/yr`
+  return `${usd(i.price)}/mo · ${usd(i.annual)}/yr`
+}
+const intervalHint = computed(() => {
+  const who = form.target === 'RENEWAL' ? 'renewals of' : 'purchases of'
+  const base = {
+    MONTHLY: `Only ${who} plans billed monthly can use the code.`,
+    ANNUAL: `Only ${who} plans billed annually can use the code.`,
+    BOTH: `Monthly and annual ${who.replace(' of', '')} can both use the code.`
+  }[form.interval]
+  return form.mode === 'FIXED_AMOUNT' && form.interval !== 'MONTHLY'
+    ? base + ' A fixed amount comes off each invoice, so annual subscribers get it once a year.'
+    : base
+})
 const scopeNoun = computed(() => (form.target === 'ADD_ON' ? 'add-on' : 'plan'))
 const startAt = computed(() => (form.startDate && form.startTime ? `${form.startDate}T${form.startTime}` : ''))
 const endAt = computed(() => (form.endDate && form.endTime ? `${form.endDate}T${form.endTime}` : ''))
@@ -121,7 +145,7 @@ const preview = computed(() => {
   const item = list.find(i => i.id === previewItem.value) || list.find(i => form.scope.includes(i.id)) || list[0]
   const eligible = !form.scope.length || form.scope.includes(item.id)
   // A renewal promo discounts the whole upcoming invoice, so the example adds an add-on line to the plan.
-  const lines = [{ label: `${item.id} (monthly)`, amount: item.price }]
+  const lines = [{ label: `${item.id} (${isAnnual.value ? 'annual' : 'monthly'})`, amount: basePrice(item) }]
   if (form.target === 'RENEWAL') lines.push({ label: 'IDX Core add-on (example)', amount: itemPrice('IDX Core') })
   const subtotal = lines.reduce((x, l) => x + l.amount, 0)
   const discount = eligible ? discountOf(form, subtotal) : 0
@@ -135,7 +159,7 @@ const badge = computed(() => discountLabel(form))
 const cappedItems = computed(() => {
   const amount = Math.round((Number(form.value) || 0) * 100)
   if (form.mode !== 'FIXED_AMOUNT' || amount <= 0) return []
-  return items.value.filter(i => form.scope.includes(i.id) && amount >= i.price)
+  return items.value.filter(i => form.scope.includes(i.id) && amount >= basePrice(i))
 })
 const isCapped = id => cappedItems.value.some(i => i.id === id)
 const allCapped = computed(() => cappedItems.value.length > 0 && cappedItems.value.length === form.scope.length)
@@ -282,7 +306,7 @@ const checks = computed(() => {
                 <label class="bo-hint" for="pc-preview">Preview for</label>
                 <select id="pc-preview" v-model="previewItem" class="bo-in" style="width: 220px">
                   <option value="">{{ preview.item.id }} (default)</option>
-                  <option v-for="i in items" :key="i.id" :value="i.id">{{ i.id }} — {{ usd(i.price) }}/mo</option>
+                  <option v-for="i in items" :key="i.id" :value="i.id">{{ i.id }} — {{ usd(basePrice(i)) }}/{{ isAnnual ? 'yr' : 'mo' }}</option>
                 </select>
               </div>
             </div>
@@ -331,16 +355,23 @@ const checks = computed(() => {
             </div>
             <div class="bo-rowflex" role="group" :aria-label="`Eligible ${scopeNoun}s`">
               <button v-for="i in items" :key="i.id" class="bo-chip" :class="{ on: form.scope.includes(i.id), warn: isCapped(i.id) }" :aria-pressed="form.scope.includes(i.id)" @click="toggleScope(i.id)">
-                {{ isCapped(i.id) ? '!' : form.scope.includes(i.id) ? '✓' : '+' }} {{ i.id }} <span class="bo-hint">{{ usd(i.price) }}/mo</span>
+                {{ isCapped(i.id) ? '!' : form.scope.includes(i.id) ? '✓' : '+' }} {{ i.id }} <span class="bo-hint">{{ priceLabel(i) }}</span>
               </button>
+            </div>
+            <div v-if="usesInterval" style="max-width: 460px">
+              <span class="bo-lbl">Billing interval <span class="req">*</span></span>
+              <div class="bo-segs" role="group" aria-label="Billing interval">
+                <button v-for="[id, label] in INTERVALS" :key="id" class="bo-seg" :class="{ on: form.interval === id }" :aria-pressed="form.interval === id" @click="form.interval = id">{{ label }}</button>
+              </div>
+              <div class="bo-hint" style="margin-top: 4px">{{ intervalHint }}</div>
             </div>
             <div v-if="cappedItems.length" class="bo-banner warn note" role="status" style="font-size: 13px">
               <div style="flex: 1 1 320px">
                 <strong>The {{ usd(Math.round(form.value * 100)) }} fixed discount is larger than {{ cappedItems.length === 1 ? 'this price' : 'these prices' }}.</strong>
                 <ul style="margin: 6px 0 0; padding-left: 18px">
                   <li v-for="i in cappedItems" :key="i.id">
-                    <template v-if="form.target === 'RENEWAL'">{{ i.id }} ({{ usd(i.price) }}): a workspace with no add-ons has a {{ usd(i.price) }} renewal, so its discount is capped there and it pays $0.00.</template>
-                    <template v-else>{{ i.id }} ({{ usd(i.price) }}): discount is capped at {{ usd(i.price) }} and the customer pays $0.00.</template>
+                    <template v-if="form.target === 'RENEWAL'">{{ i.id }} ({{ usd(basePrice(i)) }}): a workspace with no add-ons has a {{ usd(basePrice(i)) }} renewal, so its discount is capped there and it pays $0.00.</template>
+                    <template v-else>{{ i.id }} ({{ usd(basePrice(i)) }}): discount is capped at {{ usd(basePrice(i)) }} and the customer pays $0.00.</template>
                   </li>
                 </ul>
                 <div style="margin-top: 6px">You can still create the code. The cap is applied on the actual invoice line, so larger quantities, billing periods or renewals with add-ons may use the full amount.</div>
@@ -436,6 +467,7 @@ const checks = computed(() => {
               <div>Eligible {{ scopeNoun }}s</div>
               <div class="bo-rowflex" style="gap: 6px"><span v-for="s in form.scope" :key="s" class="bo-tag">{{ s }}</span></div>
             </div>
+            <div v-if="usesInterval" class="bo-kv"><div>Billing interval</div><div>{{ INTERVAL_LABEL[form.interval] }}</div></div>
           </section>
 
           <section class="bo-card bo-pad">
@@ -498,6 +530,7 @@ const checks = computed(() => {
               <div v-if="form.scope.length" class="bo-rowflex" style="gap: 6px"><span v-for="s in form.scope" :key="s" class="bo-tag">{{ s }}</span></div>
               <div v-else>Not selected</div>
             </div>
+            <div v-if="usesInterval" class="bo-kv"><div>Billing interval</div><div>{{ INTERVAL_LABEL[form.interval] }}</div></div>
             <div class="bo-kv"><div>Per workspace</div><div>One use</div></div>
             <div class="bo-kv"><div>Total cap</div><div>{{ form.capMode === 'cap' && form.cap ? form.cap : 'Unlimited' }}</div></div>
             <div class="bo-kv"><div>Starts</div><div>{{ startAt ? fmtDateTime(startAt) : '—' }}</div></div>
