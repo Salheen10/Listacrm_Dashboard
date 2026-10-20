@@ -463,11 +463,11 @@ const checks = computed(() => {
             <div class="bo-kv"><div>Applies to</div><div>{{ APPLIES_TO[form.target] }}</div></div>
             <div class="bo-kv"><div>Discount</div><div>{{ MODE_LABEL[form.mode] }} · {{ badge }}</div></div>
             <div class="bo-kv"><div>Currency</div><div>{{ form.currency }}</div></div>
+            <div v-if="usesInterval" class="bo-kv"><div>Billing interval</div><div>{{ INTERVAL_LABEL[form.interval] }}</div></div>
             <div class="bo-kv">
               <div>Eligible {{ scopeNoun }}s</div>
               <div class="bo-rowflex" style="gap: 6px"><span v-for="s in form.scope" :key="s" class="bo-tag">{{ s }}</span></div>
             </div>
-            <div v-if="usesInterval" class="bo-kv"><div>Billing interval</div><div>{{ INTERVAL_LABEL[form.interval] }}</div></div>
           </section>
 
           <section class="bo-card bo-pad">
@@ -525,12 +525,12 @@ const checks = computed(() => {
 
           <div>
             <div class="bo-between" style="align-items: center"><strong>Scope &amp; validity</strong><button v-if="step !== 2" class="bo-link" :disabled="syncing" @click="goTo(2)">Edit</button></div>
+            <div v-if="usesInterval" class="bo-kv"><div>Billing interval</div><div>{{ INTERVAL_LABEL[form.interval] }}</div></div>
             <div class="bo-kv">
               <div>Eligible {{ scopeNoun }}s</div>
               <div v-if="form.scope.length" class="bo-rowflex" style="gap: 6px"><span v-for="s in form.scope" :key="s" class="bo-tag">{{ s }}</span></div>
               <div v-else>Not selected</div>
             </div>
-            <div v-if="usesInterval" class="bo-kv"><div>Billing interval</div><div>{{ INTERVAL_LABEL[form.interval] }}</div></div>
             <div class="bo-kv"><div>Per workspace</div><div>One use</div></div>
             <div class="bo-kv"><div>Total cap</div><div>{{ form.capMode === 'cap' && form.cap ? form.cap : 'Unlimited' }}</div></div>
             <div class="bo-kv"><div>Starts</div><div>{{ startAt ? fmtDateTime(startAt) : '—' }}</div></div>
