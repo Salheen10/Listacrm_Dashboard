@@ -353,17 +353,17 @@ const checks = computed(() => {
                 The plan decides which workspaces qualify. The discount is then calculated on their total upcoming renewal: base plan plus every active add-on and extra seat. You do not select add-ons separately.
               </div>
             </div>
-            <div class="bo-rowflex" role="group" :aria-label="`Eligible ${scopeNoun}s`">
-              <button v-for="i in items" :key="i.id" class="bo-chip" :class="{ on: form.scope.includes(i.id), warn: isCapped(i.id) }" :aria-pressed="form.scope.includes(i.id)" @click="toggleScope(i.id)">
-                {{ isCapped(i.id) ? '!' : form.scope.includes(i.id) ? '✓' : '+' }} {{ i.id }} <span class="bo-hint">{{ priceLabel(i) }}</span>
-              </button>
-            </div>
             <div v-if="usesInterval" style="max-width: 460px">
               <span class="bo-lbl">Billing interval <span class="req">*</span></span>
               <div class="bo-segs" role="group" aria-label="Billing interval">
                 <button v-for="[id, label] in INTERVALS" :key="id" class="bo-seg" :class="{ on: form.interval === id }" :aria-pressed="form.interval === id" @click="form.interval = id">{{ label }}</button>
               </div>
               <div class="bo-hint" style="margin-top: 4px">{{ intervalHint }}</div>
+            </div>
+            <div class="bo-rowflex" role="group" :aria-label="`Eligible ${scopeNoun}s`">
+              <button v-for="i in items" :key="i.id" class="bo-chip" :class="{ on: form.scope.includes(i.id), warn: isCapped(i.id) }" :aria-pressed="form.scope.includes(i.id)" @click="toggleScope(i.id)">
+                {{ isCapped(i.id) ? '!' : form.scope.includes(i.id) ? '✓' : '+' }} {{ i.id }} <span class="bo-hint">{{ priceLabel(i) }}</span>
+              </button>
             </div>
             <div v-if="cappedItems.length" class="bo-banner warn note" role="status" style="font-size: 13px">
               <div style="flex: 1 1 320px">
